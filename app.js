@@ -327,7 +327,6 @@ const dom = {
   backgroundImageInput: document.getElementById('backgroundImageInput'),
   autoConnectToggle: document.getElementById('autoConnectToggle'),
   clearCanvasBtn: document.getElementById('clearCanvasBtn'),
-  autoSortBtn: document.getElementById('autoSortBtn'),
   exportPngBtn: document.getElementById('exportPngBtn'),
   exportPdfBtn: document.getElementById('exportPdfBtn'),
   exportPptxBtn: document.getElementById('exportPptxBtn'),
@@ -1998,12 +1997,6 @@ function bindControlEvents() {
     clearCanvas();
     render();
     notify('Canvas cleared.');
-  });
-
-  dom.autoSortBtn.addEventListener('click', () => {
-    compactRows();
-    render();
-    notify('Rows reflowed with equal spacing.');
   });
 
   dom.backgroundImageInput.addEventListener('change', async () => {
