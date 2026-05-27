@@ -286,9 +286,9 @@ body {
 .slide-header {
   height: 112px;
   display: grid;
-  grid-template-columns: 1fr 130px;
+  grid-template-columns: 1fr;
   align-items: center;
-  padding: 0 0 0 0;
+  padding: 0;
   position: relative;
 }
 
@@ -301,14 +301,6 @@ body {
   letter-spacing: 0.01em;
   font-weight: 800;
   color: var(--slide-title);
-}
-
-.header-accent {
-  width: 80px;
-  height: 8px;
-  background: var(--slide-accent);
-  justify-self: end;
-  border-radius: 999px 0 0 999px;
 }
 
 .slide-body {
