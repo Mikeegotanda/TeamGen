@@ -233,6 +233,7 @@ const PRESETS = {
 
 const STORAGE_KEY = 'teamgen-state-v2';
 const SAVED_CHARTS_KEY = 'teamgen-saved-charts-v1';
+const TEAM_LIBRARY_KEY = 'teamgen-library-v1';
 const MAX_SAVED_CHARTS = 30;
 
 function normalizeSettings(settings) {
@@ -2602,6 +2603,35 @@ function cloneSnapshotData(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function persistLibraryMembers() {
+  try {
+    const payload = {
+      members: cloneSnapshotData(state.members),
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(TEAM_LIBRARY_KEY, JSON.stringify(payload));
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function loadPersistedLibraryMembers() {
+  try {
+    const raw = localStorage.getItem(TEAM_LIBRARY_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.members)) {
+      return null;
+    }
+    return parsed.members;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
 function buildChartSnapshot() {
   return {
     members: cloneSnapshotData(state.members),
@@ -2646,6 +2676,12 @@ function getSavedCharts() {
     console.error(error);
     return [];
   }
+}
+
+function latestMembersFromSavedCharts() {
+  const charts = getSavedCharts();
+  const latestWithMembers = charts.find((entry) => Array.isArray(entry?.snapshot?.members));
+  return latestWithMembers?.snapshot?.members || null;
 }
 
 function setSavedCharts(charts) {
@@ -2764,12 +2800,19 @@ function persistState() {
     ...buildChartSnapshot()
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  persistLibraryMembers();
 }
 
 function restoreState() {
   const stored = localStorage.getItem(STORAGE_KEY);
+  const persistedMembers = loadPersistedLibraryMembers();
+  const savedChartMembers = latestMembersFromSavedCharts();
+  const fallbackMembers = persistedMembers || savedChartMembers;
   if (!stored) {
     seedInitialLayout();
+    if (Array.isArray(fallbackMembers)) {
+      state.members = cloneSnapshotData(fallbackMembers);
+    }
     return;
   }
 
@@ -2788,9 +2831,15 @@ function restoreState() {
     state.nodeSequence = parsed.nodeSequence || 1;
     state.settings = normalizeSettings(parsed.settings);
     state.autoConnect = parsed.autoConnect !== false;
+    if (!Array.isArray(state.members)) {
+      state.members = Array.isArray(fallbackMembers) ? cloneSnapshotData(fallbackMembers) : structuredClone(DEFAULT_MEMBERS);
+    }
   } catch (error) {
     console.error(error);
     seedInitialLayout();
+    if (Array.isArray(fallbackMembers)) {
+      state.members = cloneSnapshotData(fallbackMembers);
+    }
   }
 }
 
