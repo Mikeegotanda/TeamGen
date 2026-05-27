@@ -1302,7 +1302,7 @@ function renderCards(layouts) {
   const blurStrength = clamp(Number(state.settings.blurStrength || 10), 0, 24);
   const timings = animationTimings();
   const entranceClass = cardAnimationClass();
-  const floatingClass = state.settings.floatingCards ? ' float-on-hover' : '';
+  const floatingClass = '';
 
   dom.cardLayer.innerHTML = Object.entries(layouts)
     .map(([nodeId, layout]) => {
@@ -1829,7 +1829,9 @@ function syncControls() {
   if (dom.blurStrengthInput) {
     dom.blurStrengthInput.value = String(state.settings.blurStrength ?? 10);
   }
-  dom.floatingCardsInput.checked = state.settings.floatingCards !== false;
+  if (dom.floatingCardsInput) {
+    dom.floatingCardsInput.checked = state.settings.floatingCards !== false;
+  }
   dom.parallaxEnabledInput.checked = state.settings.parallaxEnabled === true;
   if (dom.backgroundDepthInput) {
     dom.backgroundDepthInput.value = String(state.settings.backgroundDepth ?? 24);
@@ -1979,10 +1981,12 @@ function bindControlEvents() {
     });
   }
 
-  dom.floatingCardsInput.addEventListener('change', () => {
-    state.settings.floatingCards = dom.floatingCardsInput.checked;
-    render();
-  });
+  if (dom.floatingCardsInput) {
+    dom.floatingCardsInput.addEventListener('change', () => {
+      state.settings.floatingCards = dom.floatingCardsInput.checked;
+      render();
+    });
+  }
 
   dom.parallaxEnabledInput.addEventListener('change', () => {
     state.settings.parallaxEnabled = dom.parallaxEnabledInput.checked;
