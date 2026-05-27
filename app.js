@@ -1,31 +1,4 @@
-const DEFAULT_MEMBERS = [
-  { id: 'm1', name: 'Peter Tornatore', title: 'VP, Estimating', department: 'Pre Construction' },
-  { id: 'm2', name: 'Robert Russo', title: 'VP, Interiors', department: 'Pre Construction' },
-  { id: 'm3', name: 'Brian Fusco', title: 'Estimating Team Lead', department: 'Pre Construction' },
-  { id: 'm4', name: 'Bruce Cohan', title: 'Project Director', department: 'Construction' },
-  { id: 'm5', name: 'Robert Rydstrom', title: 'Field Operations Director', department: 'Construction' },
-  { id: 'm6', name: 'Stephen Dunn', title: 'Estimator', department: 'Pre Construction' },
-  { id: 'm7', name: 'Sal LaBarca', title: 'Project Manager / Full Time Field Supervisor', department: 'Construction' },
-  { id: 'm8', name: 'Presley Gaetano', title: 'Asst Superintendent / Asst Project Manager', department: 'Construction' },
-  { id: 'm9', name: 'Gianny Baidal', title: 'Virtual Design & Construction', department: 'Corporate Services' },
-  { id: 'm10', name: 'Michael Kersten', title: 'Permitting & Expediting', department: 'Corporate Services' },
-  { id: 'm11', name: 'John Driscoll', title: 'Structural Engineering', department: 'Corporate Services' },
-  { id: 'm12', name: 'David Mullen', title: 'Mission Critical', department: 'Corporate Services' },
-  { id: 'm13', name: 'Eve Vick', title: 'Director of Scheduling', department: 'Corporate Services' },
-  { id: 'm14', name: 'Thomas Gallagher', title: 'MEPS & Technology', department: 'Corporate Services' },
-  { id: 'm15', name: 'Celia Seigerman-Levit', title: 'Risk Management', department: 'Corporate Services' },
-  { id: 'm16', name: 'Dwayne Carter', title: 'Environmental Health & Safety', department: 'Corporate Services' },
-  { id: 'm17', name: 'Marc Reissman', title: 'Principal', department: 'Introduction' },
-  { id: 'm18', name: 'Gerald Flamio', title: 'Project Director', department: 'Introduction' },
-  { id: 'm19', name: 'Rehman Malik', title: 'Senior Project Manager', department: 'Introduction' },
-  { id: 'm20', name: 'Natalia Caruso', title: 'Estimating Manager', department: 'Introduction' },
-  { id: 'm21', name: 'Ariana Majstorovic', title: 'Project Estimator', department: 'Introduction' },
-  { id: 'm22', name: 'Louis Cangiano', title: 'Superintendent', department: 'Introduction' },
-  { id: 'm23', name: 'Dan Abolafia', title: 'Superintendent', department: 'Introduction' }
-].map((member, index) => ({
-  ...member,
-  photo: member.photo || createAvatar(member.name, index)
-}));
+const DEFAULT_MEMBERS = [];
 
 const PRESETS = {
   preconstruction: {
@@ -242,6 +215,8 @@ const PRESETS = {
   }
 };
 
+const STORAGE_KEY = 'teamgen-state-v2';
+
 function normalizeSettings(settings) {
   const presetKey = settings?.type && PRESETS[settings.type] ? settings.type : 'preconstruction';
   return {
@@ -266,6 +241,9 @@ const dom = {
   libraryList: document.getElementById('libraryList'),
   memberSearch: document.getElementById('memberSearch'),
   memberDepartmentFilter: document.getElementById('memberDepartmentFilter'),
+  removeDepartmentInput: document.getElementById('removeDepartmentInput'),
+  removeDepartmentBtn: document.getElementById('removeDepartmentBtn'),
+  clearLibraryBtn: document.getElementById('clearLibraryBtn'),
   newMemberName: document.getElementById('newMemberName'),
   newMemberTitle: document.getElementById('newMemberTitle'),
   newMemberDepartment: document.getElementById('newMemberDepartment'),
@@ -573,7 +551,7 @@ function clearCanvas() {
 }
 
 function sortedDepartments() {
-  const all = new Set(state.members.map((member) => member.department));
+  const all = new Set(state.members.map((member) => member.department).filter(Boolean));
   return ['All Departments', ...Array.from(all).sort((a, b) => a.localeCompare(b))];
 }
 
@@ -586,6 +564,80 @@ function fillDepartmentFilter() {
   if (options.includes(previous)) {
     dom.memberDepartmentFilter.value = previous;
   }
+}
+
+function fillDepartmentRemovalOptions() {
+  const departments = sortedDepartments().filter((name) => name !== 'All Departments');
+  const previous = dom.removeDepartmentInput.value;
+  dom.removeDepartmentInput.innerHTML = departments.length
+    ? departments.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')
+    : '<option value="">No departments</option>';
+  if (departments.includes(previous)) {
+    dom.removeDepartmentInput.value = previous;
+  }
+}
+
+function removeNodesForMemberIds(memberIds) {
+  const memberSet = new Set(memberIds);
+  const nodeIdsToRemove = Object.values(state.nodes)
+    .filter((node) => memberSet.has(node.memberId))
+    .map((node) => node.id);
+  if (nodeIdsToRemove.length === 0) {
+    return;
+  }
+
+  const nodeSet = new Set(nodeIdsToRemove);
+  nodeIdsToRemove.forEach((nodeId) => {
+    removeNodeFromRows(nodeId);
+    delete state.nodes[nodeId];
+  });
+  state.manualLinks = state.manualLinks.filter((link) => !nodeSet.has(link.from) && !nodeSet.has(link.to));
+  if (state.selectedCardId && nodeSet.has(state.selectedCardId)) {
+    state.selectedCardId = null;
+  }
+}
+
+function removeMember(memberId) {
+  const member = getMemberById(memberId);
+  if (!member) {
+    return;
+  }
+  state.members = state.members.filter((item) => item.id !== memberId);
+  removeNodesForMemberIds([memberId]);
+  renderLibrary();
+  render();
+  notify(`Removed ${member.name} from team library.`);
+}
+
+function removeDepartment() {
+  const department = dom.removeDepartmentInput.value;
+  if (!department) {
+    notify('No department selected.');
+    return;
+  }
+  const membersInDepartment = state.members.filter((member) => member.department === department);
+  if (membersInDepartment.length === 0) {
+    notify(`No members found in ${department}.`);
+    return;
+  }
+
+  const memberIds = membersInDepartment.map((member) => member.id);
+  state.members = state.members.filter((member) => member.department !== department);
+  removeNodesForMemberIds(memberIds);
+  if (dom.memberDepartmentFilter.value === department) {
+    dom.memberDepartmentFilter.value = 'All Departments';
+  }
+  renderLibrary();
+  render();
+  notify(`Removed department ${department} (${memberIds.length} members).`);
+}
+
+function clearLibraryMembers() {
+  state.members = [];
+  clearCanvas();
+  renderLibrary();
+  render();
+  notify('Team library cleared.');
 }
 
 function visibleMembers() {
@@ -603,9 +655,11 @@ function visibleMembers() {
 
 function renderLibrary() {
   fillDepartmentFilter();
+  fillDepartmentRemovalOptions();
   const members = visibleMembers();
 
-  dom.libraryList.innerHTML = members
+  dom.libraryList.innerHTML = members.length
+    ? members
     .map(
       (member) => `
         <div class="member-chip" draggable="true" data-member-id="${member.id}">
@@ -615,15 +669,28 @@ function renderLibrary() {
             <div class="member-role">${escapeHtml(member.title)}</div>
             <div class="member-dept">${escapeHtml(member.department)}</div>
           </div>
+          <button class="member-remove-btn" type="button" data-remove-member-id="${member.id}" aria-label="Remove ${escapeHtml(member.name)}">Remove</button>
         </div>
       `
     )
-    .join('');
+    .join('')
+    : '<div class="library-empty">No team members yet. Add your first member above.</div>';
 
   dom.libraryList.querySelectorAll('.member-chip').forEach((chip) => {
     chip.addEventListener('dragstart', (event) => {
       event.dataTransfer.setData('text/member-id', chip.dataset.memberId);
       event.dataTransfer.effectAllowed = 'copy';
+    });
+  });
+
+  dom.libraryList.querySelectorAll('.member-remove-btn').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const memberId = button.dataset.removeMemberId;
+      if (memberId) {
+        removeMember(memberId);
+      }
     });
   });
 }
@@ -1423,7 +1490,10 @@ function addMemberFromForm() {
     return;
   }
 
-  const nextId = `m${state.members.length + 1}`;
+  const nextId = `m${state.members.reduce((max, member) => {
+    const value = Number(String(member.id || '').replace(/^m/, ''));
+    return Number.isFinite(value) ? Math.max(max, value) : max;
+  }, 0) + 1}`;
   const file = dom.newMemberPhoto.files[0];
 
   const finish = (photo) => {
@@ -1517,6 +1587,8 @@ function bindControlEvents() {
   dom.memberSearch.addEventListener('input', renderLibrary);
   dom.memberDepartmentFilter.addEventListener('change', renderLibrary);
   dom.addMemberBtn.addEventListener('click', addMemberFromForm);
+  dom.removeDepartmentBtn.addEventListener('click', removeDepartment);
+  dom.clearLibraryBtn.addEventListener('click', clearLibraryMembers);
 
   dom.hierarchyDirectionInput.addEventListener('change', () => {
     state.settings.hierarchyDirection = dom.hierarchyDirectionInput.value;
@@ -2155,11 +2227,11 @@ function persistState() {
     settings: state.settings,
     autoConnect: state.autoConnect
   };
-  localStorage.setItem('teamgen-state-v1', JSON.stringify(payload));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
 
 function restoreState() {
-  const stored = localStorage.getItem('teamgen-state-v1');
+  const stored = localStorage.getItem(STORAGE_KEY);
   if (!stored) {
     seedInitialLayout();
     return;
@@ -2188,15 +2260,11 @@ function restoreState() {
 
 function seedInitialLayout() {
   state.settings = structuredClone(PRESETS.preconstruction);
+  state.members = structuredClone(DEFAULT_MEMBERS);
   state.rows = [];
   state.nodes = {};
   state.manualLinks = [];
   state.nodeSequence = 1;
-
-  layoutMembers(
-    ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'],
-    [2, 3, 2]
-  );
 }
 
 function boot() {

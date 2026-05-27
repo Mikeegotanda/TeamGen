@@ -209,7 +209,7 @@ body {
 
 .member-chip {
   display: grid;
-  grid-template-columns: 50px 1fr;
+  grid-template-columns: 50px 1fr auto;
   gap: 10px;
   align-items: center;
   padding: 8px;
@@ -219,6 +219,31 @@ body {
   margin-bottom: 8px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(247, 250, 255, 0.46));
   box-shadow: 0 8px 16px rgba(23, 42, 62, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.66);
+}
+
+.member-remove-btn {
+  border: 1px solid rgba(189, 64, 83, 0.4);
+  background: rgba(255, 245, 247, 0.9);
+  color: #8f2231;
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.member-remove-btn:hover {
+  background: rgba(255, 233, 238, 0.95);
+}
+
+.library-empty {
+  border: 1px dashed rgba(130, 151, 177, 0.45);
+  border-radius: var(--ui-radius);
+  padding: 16px;
+  text-align: center;
+  font-size: 12px;
+  color: #5f7388;
+  background: rgba(255, 255, 255, 0.44);
 }
 
 .member-chip:active {
