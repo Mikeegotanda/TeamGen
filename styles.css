@@ -88,9 +88,39 @@ body {
   padding-bottom: 8px;
 }
 
+.panel-right {
+  overflow-y: auto;
+}
+
 .panel-left > *:not(.panel-header),
 .panel-right > *:not(.panel-header) {
   margin: 8px 12px 0;
+}
+
+.control-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.control-section .grid-2,
+.control-section .field-stack {
+  margin-top: 0;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #45607d;
+}
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(92, 122, 154, 0.05), rgba(92, 122, 154, 0.42), rgba(92, 122, 154, 0.05));
+  margin: 2px 12px 0;
 }
 
 .field-stack {

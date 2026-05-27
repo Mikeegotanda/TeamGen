@@ -87,109 +87,132 @@
         <p>Theme, layout, and exports</p>
       </div>
 
-      <div class="field-stack compact">
-        <label for="slideType">Slide Type</label>
-        <select id="slideType">
-          <option value="preconstruction">Pre Construction</option>
-          <option value="construction">Construction</option>
-          <option value="corporate">Corporate Services</option>
-          <option value="introduction">Introduction</option>
-        </select>
-      </div>
-
-      <div class="field-stack compact">
-        <label for="titleInput">Slide Title</label>
-        <input id="titleInput" type="text" />
-      </div>
-
-      <div class="grid-2">
+      <div class="control-section">
+        <h3 class="section-title">Slide Setup</h3>
         <div class="field-stack compact">
-          <label for="bgColorInput">Background</label>
-          <input id="bgColorInput" type="color" />
-        </div>
-        <div class="field-stack compact">
-          <label for="accentColorInput">Accent</label>
-          <input id="accentColorInput" type="color" />
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div class="field-stack compact">
-          <label for="headingColorInput">Heading Color</label>
-          <input id="headingColorInput" type="color" />
-        </div>
-        <div class="field-stack compact">
-          <label for="cardBgInput">Card Background</label>
-          <input id="cardBgInput" type="color" />
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div class="field-stack compact">
-          <label for="headingSizeInput">Title Size</label>
-          <input id="headingSizeInput" type="range" min="24" max="88" />
-        </div>
-        <div class="field-stack compact">
-          <label for="headingFontInput">Title Font</label>
-          <select id="headingFontInput">
-            <option value="Sora">Sora</option>
-            <option value="Manrope">Manrope</option>
-            <option value="Arial Black">Arial Black</option>
-            <option value="Georgia">Georgia</option>
+          <label for="slideType">Slide Type</label>
+          <select id="slideType">
+            <option value="preconstruction">Pre Construction</option>
+            <option value="construction">Construction</option>
+            <option value="corporate">Corporate Services</option>
+            <option value="introduction">Introduction</option>
           </select>
         </div>
-      </div>
-
-      <div class="grid-2">
-        <label class="check-wrap">
-          <input id="headingBoldInput" type="checkbox" checked />
-          Bold Title
-        </label>
-      </div>
-
-      <div class="grid-2">
         <div class="field-stack compact">
-          <label for="nameSizeInput">Name Size</label>
-          <input id="nameSizeInput" type="range" min="14" max="34" />
-        </div>
-        <div class="field-stack compact">
-          <label for="titleSizeInput">Role Size</label>
-          <input id="titleSizeInput" type="range" min="12" max="30" />
+          <label for="titleInput">Slide Title</label>
+          <input id="titleInput" type="text" />
         </div>
       </div>
 
-      <div class="grid-2">
-        <label class="check-wrap">
-          <input id="nameBoldInput" type="checkbox" checked />
-          Bold Names
-        </label>
-        <label class="check-wrap">
-          <input id="cardShadowInput" type="checkbox" checked />
-          Card Shadow
-        </label>
+      <div class="section-divider"></div>
+
+      <div class="control-section">
+        <h3 class="section-title">Colors</h3>
+        <div class="grid-2">
+          <div class="field-stack compact">
+            <label for="bgColorInput">Background</label>
+            <input id="bgColorInput" type="color" />
+          </div>
+          <div class="field-stack compact">
+            <label for="accentColorInput">Accent</label>
+            <input id="accentColorInput" type="color" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field-stack compact">
+            <label for="headingColorInput">Heading Color</label>
+            <input id="headingColorInput" type="color" />
+          </div>
+          <div class="field-stack compact">
+            <label for="cardBgInput">Card Background</label>
+            <input id="cardBgInput" type="color" />
+          </div>
+        </div>
       </div>
 
-      <div class="grid-2">
-        <label class="check-wrap">
-          <input id="cardOutlineInput" type="checkbox" checked />
-          Card Outline
-        </label>
+      <div class="section-divider"></div>
+
+      <div class="control-section">
+        <h3 class="section-title">Typography</h3>
+        <div class="grid-2">
+          <div class="field-stack compact">
+            <label for="headingSizeInput">Title Size</label>
+            <input id="headingSizeInput" type="range" min="24" max="88" />
+          </div>
+          <div class="field-stack compact">
+            <label for="headingFontInput">Title Font</label>
+            <select id="headingFontInput">
+              <option value="Sora">Sora</option>
+              <option value="Manrope">Manrope</option>
+              <option value="Arial Black">Arial Black</option>
+              <option value="Georgia">Georgia</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <label class="check-wrap">
+            <input id="headingBoldInput" type="checkbox" checked />
+            Bold Title
+          </label>
+        </div>
+        <div class="grid-2">
+          <div class="field-stack compact">
+            <label for="nameSizeInput">Name Size</label>
+            <input id="nameSizeInput" type="range" min="14" max="34" />
+          </div>
+          <div class="field-stack compact">
+            <label for="titleSizeInput">Role Size</label>
+            <input id="titleSizeInput" type="range" min="12" max="30" />
+          </div>
+        </div>
+        <div class="grid-2">
+          <label class="check-wrap">
+            <input id="nameBoldInput" type="checkbox" checked />
+            Bold Names
+          </label>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="control-section">
+        <h3 class="section-title">Card Style</h3>
+        <div class="grid-2">
+          <label class="check-wrap">
+            <input id="cardShadowInput" type="checkbox" checked />
+            Card Shadow
+          </label>
+          <label class="check-wrap">
+            <input id="cardOutlineInput" type="checkbox" checked />
+            Card Outline
+          </label>
+        </div>
         <div class="field-stack compact">
           <label for="cardRadiusInput">Card Radius</label>
           <input id="cardRadiusInput" type="range" min="0" max="42" />
         </div>
       </div>
 
-      <div class="field-stack compact">
-        <label for="backgroundImageInput">Background Image</label>
-        <input id="backgroundImageInput" type="file" accept="image/*" />
+      <div class="section-divider"></div>
+
+      <div class="control-section">
+        <h3 class="section-title">Background</h3>
+        <div class="field-stack compact">
+          <label for="backgroundImageInput">Background Image</label>
+          <input id="backgroundImageInput" type="file" accept="image/*" />
+        </div>
       </div>
 
-      <div class="export-actions">
-        <button id="exportPngBtn" class="btn" type="button">Export PNG</button>
-        <button id="exportPdfBtn" class="btn" type="button">Export PDF</button>
-        <button id="exportPptxBtn" class="btn" type="button">Export PPTX</button>
-        <button id="exportHtmlBtn" class="btn" type="button">Export HTML</button>
+      <div class="section-divider"></div>
+
+      <div class="control-section">
+        <h3 class="section-title">Export</h3>
+        <div class="export-actions">
+          <button id="exportPngBtn" class="btn" type="button">Export PNG</button>
+          <button id="exportPdfBtn" class="btn" type="button">Export PDF</button>
+          <button id="exportPptxBtn" class="btn" type="button">Export PPTX</button>
+          <button id="exportHtmlBtn" class="btn" type="button">Export HTML</button>
+        </div>
       </div>
 
       <div id="statusText" class="status-text" role="status" aria-live="polite"></div>
