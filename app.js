@@ -1823,8 +1823,12 @@ function syncControls() {
   dom.animationSpeedInput.value = state.settings.animationSpeed || 'normal';
   dom.layoutModeInput.value = state.settings.layoutMode || 'symmetrical';
   dom.symmetryDynamicInput.value = String(state.settings.symmetryDynamic ?? 18);
-  dom.shadowIntensityInput.value = String(state.settings.shadowIntensity ?? 100);
-  dom.blurStrengthInput.value = String(state.settings.blurStrength ?? 10);
+  if (dom.shadowIntensityInput) {
+    dom.shadowIntensityInput.value = String(state.settings.shadowIntensity ?? 100);
+  }
+  if (dom.blurStrengthInput) {
+    dom.blurStrengthInput.value = String(state.settings.blurStrength ?? 10);
+  }
   dom.floatingCardsInput.checked = state.settings.floatingCards !== false;
   dom.parallaxEnabledInput.checked = state.settings.parallaxEnabled === true;
   if (dom.backgroundDepthInput) {
@@ -1954,15 +1958,19 @@ function bindControlEvents() {
     render();
   });
 
-  dom.shadowIntensityInput.addEventListener('input', () => {
-    state.settings.shadowIntensity = Number(dom.shadowIntensityInput.value);
-    render();
-  });
+  if (dom.shadowIntensityInput) {
+    dom.shadowIntensityInput.addEventListener('input', () => {
+      state.settings.shadowIntensity = Number(dom.shadowIntensityInput.value);
+      render();
+    });
+  }
 
-  dom.blurStrengthInput.addEventListener('input', () => {
-    state.settings.blurStrength = Number(dom.blurStrengthInput.value);
-    render();
-  });
+  if (dom.blurStrengthInput) {
+    dom.blurStrengthInput.addEventListener('input', () => {
+      state.settings.blurStrength = Number(dom.blurStrengthInput.value);
+      render();
+    });
+  }
 
   if (dom.backgroundDepthInput) {
     dom.backgroundDepthInput.addEventListener('input', () => {
