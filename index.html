@@ -135,6 +135,24 @@
               <option value="8">8</option>
             </select>
           </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="bgColorInput">Background Color</label>
+              <input id="bgColorInput" type="color" />
+            </div>
+            <div class="field-stack compact">
+              <label for="bgGradientColor2Input">Gradient Color</label>
+              <input id="bgGradientColor2Input" type="color" />
+            </div>
+          </div>
+          <label class="check-wrap">
+            <input id="bgGradientEnabledInput" type="checkbox" />
+            Use Gradient Overlay
+          </label>
+          <div class="field-stack compact">
+            <label for="backgroundImageInput">Background Image</label>
+            <input id="backgroundImageInput" type="file" accept="image/*" />
+          </div>
         </div>
       </details>
 
@@ -362,19 +380,15 @@
         <div class="control-section">
           <div class="grid-2">
             <div class="field-stack compact">
-              <label for="bgColorInput">Background</label>
-              <input id="bgColorInput" type="color" />
-            </div>
-            <div class="field-stack compact">
               <label for="accentColorInput">Accent</label>
               <input id="accentColorInput" type="color" />
             </div>
-          </div>
-          <div class="grid-2">
             <div class="field-stack compact">
               <label for="headingColorInput">Heading Color</label>
               <input id="headingColorInput" type="color" />
             </div>
+          </div>
+          <div class="grid-2">
             <div class="field-stack compact">
               <label for="cardBgInput">Card Background</label>
               <input id="cardBgInput" type="color" />
@@ -497,26 +511,6 @@
           <div class="field-stack compact">
             <label for="cardHeightScaleInput">Card Height</label>
             <input id="cardHeightScaleInput" type="range" min="45" max="130" />
-          </div>
-        </div>
-      </details>
-
-      <details class="control-dropdown">
-        <summary>Background</summary>
-        <div class="control-section">
-          <div class="field-stack compact">
-            <label for="backgroundStyleInput">Background Style</label>
-            <select id="backgroundStyleInput">
-              <option value="plain">Plain</option>
-              <option value="gradient">Gradient</option>
-              <option value="grid">Grid</option>
-              <option value="blueprint">Blueprint</option>
-              <option value="dots">Dots</option>
-            </select>
-          </div>
-          <div class="field-stack compact">
-            <label for="backgroundImageInput">Background Image</label>
-            <input id="backgroundImageInput" type="file" accept="image/*" />
           </div>
         </div>
       </details>

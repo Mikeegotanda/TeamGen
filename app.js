@@ -37,7 +37,8 @@ const PRESETS = {
     infoVisibility: 'name-role',
     cardWidthScale: 100,
     cardHeightScale: 100,
-    backgroundStyle: 'plain',
+    bgGradientEnabled: false,
+    bgGradientColor2: '#dfe8f3',
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
     animationSpeed: 'normal',
@@ -93,7 +94,8 @@ const PRESETS = {
     infoVisibility: 'name-role',
     cardWidthScale: 100,
     cardHeightScale: 100,
-    backgroundStyle: 'plain',
+    bgGradientEnabled: false,
+    bgGradientColor2: '#dfe8f3',
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
     animationSpeed: 'normal',
@@ -149,7 +151,8 @@ const PRESETS = {
     infoVisibility: 'name-role',
     cardWidthScale: 100,
     cardHeightScale: 100,
-    backgroundStyle: 'plain',
+    bgGradientEnabled: false,
+    bgGradientColor2: '#dfe8f3',
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
     animationSpeed: 'normal',
@@ -205,7 +208,8 @@ const PRESETS = {
     infoVisibility: 'name-role',
     cardWidthScale: 100,
     cardHeightScale: 100,
-    backgroundStyle: 'plain',
+    bgGradientEnabled: false,
+    bgGradientColor2: '#dfe8f3',
     cardEntranceAnimation: 'tree-grow',
     connectorAnimation: 'draw',
     animationSpeed: 'normal',
@@ -231,6 +235,7 @@ const STORAGE_KEY = 'teamgen-state-v2';
 
 function normalizeSettings(settings) {
   const presetKey = settings?.type && PRESETS[settings.type] ? settings.type : 'preconstruction';
+  const legacyGradientEnabled = settings?.backgroundStyle === 'gradient';
   const normalized = {
     ...PRESETS[presetKey],
     ...(settings || {})
@@ -243,6 +248,8 @@ function normalizeSettings(settings) {
   }
   normalized.cardWidthScale = Number.isFinite(Number(normalized.cardWidthScale)) ? Number(normalized.cardWidthScale) : 100;
   normalized.cardHeightScale = Number.isFinite(Number(normalized.cardHeightScale)) ? Number(normalized.cardHeightScale) : 100;
+  normalized.bgGradientEnabled = typeof normalized.bgGradientEnabled === 'boolean' ? normalized.bgGradientEnabled : legacyGradientEnabled;
+  normalized.bgGradientColor2 = normalized.bgGradientColor2 || '#dfe8f3';
   return normalized;
 }
 
@@ -304,6 +311,8 @@ const dom = {
   cardVisualTypeInput: document.getElementById('cardVisualTypeInput'),
   avatarTreatmentInput: document.getElementById('avatarTreatmentInput'),
   bgColorInput: document.getElementById('bgColorInput'),
+  bgGradientEnabledInput: document.getElementById('bgGradientEnabledInput'),
+  bgGradientColor2Input: document.getElementById('bgGradientColor2Input'),
   accentColorInput: document.getElementById('accentColorInput'),
   headingColorInput: document.getElementById('headingColorInput'),
   headingSizeInput: document.getElementById('headingSizeInput'),
@@ -323,7 +332,6 @@ const dom = {
   avatarStyleInput: document.getElementById('avatarStyleInput'),
   cardElevationInput: document.getElementById('cardElevationInput'),
   infoVisibilityInput: document.getElementById('infoVisibilityInput'),
-  backgroundStyleInput: document.getElementById('backgroundStyleInput'),
   backgroundImageInput: document.getElementById('backgroundImageInput'),
   autoConnectToggle: document.getElementById('autoConnectToggle'),
   clearCanvasBtn: document.getElementById('clearCanvasBtn'),
@@ -357,6 +365,21 @@ function notify(message) {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function withAlpha(color, alphaHex) {
+  if (typeof color !== 'string') {
+    return color;
+  }
+  const value = color.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+    return `${value}${alphaHex}`;
+  }
+  if (/^#[0-9a-fA-F]{3}$/.test(value)) {
+    const expanded = `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}`;
+    return `${expanded}${alphaHex}`;
+  }
+  return value;
 }
 
 function lerp(a, b, t) {
@@ -1545,36 +1568,41 @@ function updateHeaderHeight() {
   dom.slide.style.setProperty('--header-height', `${headerHeight}px`);
 }
 
-function slideBackgroundFromStyle() {
-  const bg = state.settings.bgColor;
+function applySlideBackgroundLayers() {
+  const bg = state.settings.bgColor || '#ffffff';
+  const gradientColor2 = state.settings.bgGradientColor2 || '#dfe8f3';
   const depth = clamp(Number(state.settings.backgroundDepth || 0) / 100, 0, 1);
-  const depthOverlay = `radial-gradient(1000px 480px at 50% -20%, rgba(255,255,255,${0.28 + depth * 0.24}), rgba(255,255,255,0))`;
-  if (state.settings.backgroundStyle === 'gradient') {
-    return `${depthOverlay}, linear-gradient(155deg, ${bg} 0%, #dfe8f3 100%)`;
-  }
-  if (state.settings.backgroundStyle === 'grid') {
-    return `${depthOverlay}, linear-gradient(${bg}, ${bg}), linear-gradient(rgba(65,87,115,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(65,87,115,0.14) 1px, transparent 1px)`;
-  }
-  if (state.settings.backgroundStyle === 'blueprint') {
-    return `${depthOverlay}, linear-gradient(#d7e6f8, #d7e6f8), linear-gradient(rgba(34,78,122,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(34,78,122,0.18) 1px, transparent 1px)`;
-  }
-  if (state.settings.backgroundStyle === 'dots') {
-    return `${depthOverlay}, radial-gradient(circle at 1px 1px, rgba(68,90,120,0.3) 1px, transparent 0), linear-gradient(${bg}, ${bg})`;
-  }
-  return `${depthOverlay}, linear-gradient(${bg}, ${bg})`;
-}
+  const images = [];
+  const sizes = [];
+  const positions = [];
+  const repeats = [];
 
-function backgroundSizingFromStyle() {
-  if (state.settings.backgroundStyle === 'plain') {
-    return 'auto, cover';
+  if (depth > 0) {
+    images.push(`radial-gradient(1000px 480px at 50% -20%, rgba(255,255,255,${0.28 + depth * 0.24}), rgba(255,255,255,0))`);
+    sizes.push('auto');
+    positions.push('center top');
+    repeats.push('no-repeat');
   }
-  if (state.settings.backgroundStyle === 'grid' || state.settings.backgroundStyle === 'blueprint') {
-    return 'auto, auto, 34px 34px, 34px 34px';
+
+  if (state.settings.bgGradientEnabled) {
+    images.push(`linear-gradient(155deg, ${withAlpha(bg, '26')} 0%, ${withAlpha(gradientColor2, 'B8')} 100%)`);
+    sizes.push('cover');
+    positions.push('center center');
+    repeats.push('no-repeat');
   }
-  if (state.settings.backgroundStyle === 'dots') {
-    return 'auto, 16px 16px, auto';
+
+  if (state.settings.bgImage) {
+    images.push(`url(${state.settings.bgImage})`);
+    sizes.push('cover');
+    positions.push('center center');
+    repeats.push('no-repeat');
   }
-  return 'auto, cover';
+
+  dom.slide.style.backgroundColor = bg;
+  dom.slide.style.backgroundImage = images.length ? images.join(', ') : 'none';
+  dom.slide.style.backgroundSize = sizes.length ? sizes.join(', ') : 'auto';
+  dom.slide.style.backgroundPosition = positions.length ? positions.join(', ') : 'center';
+  dom.slide.style.backgroundRepeat = repeats.length ? repeats.join(', ') : 'no-repeat';
 }
 
 function applyStyleToSlide() {
@@ -1591,13 +1619,7 @@ function applyStyleToSlide() {
   dom.slide.style.boxShadow = `0 ${Math.round(18 * shadowIntensity)}px ${Math.round(34 * shadowIntensity)}px rgba(23, 33, 45, ${0.22 * Math.max(0.4, shadowIntensity)})${glow ? `, ${glow}` : ''}`;
   dom.slide.style.backdropFilter = `blur(${Math.round(blurStrength * 0.12)}px)`;
 
-  if (state.settings.bgImage) {
-    dom.slide.style.background = `linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url(${state.settings.bgImage}) center/cover no-repeat`;
-    dom.slide.style.backgroundSize = 'cover';
-  } else {
-    dom.slide.style.background = slideBackgroundFromStyle();
-    dom.slide.style.backgroundSize = backgroundSizingFromStyle();
-  }
+  applySlideBackgroundLayers();
 
   if (dom.slideTitle) {
     dom.slideTitle.textContent = state.settings.title;
@@ -1608,10 +1630,7 @@ function applyStyleToSlide() {
   }
   updateHeaderHeight();
 
-  if (state.settings.type === 'introduction') {
-    dom.slide.style.backgroundImage = `${state.settings.bgImage ? `url(${state.settings.bgImage}),` : ''}radial-gradient(circle at 50% -20%, rgba(255,255,255,0.48), rgba(255,255,255,0))`;
-    dom.slide.style.backgroundBlendMode = 'normal';
-  }
+  dom.slide.style.backgroundBlendMode = 'normal';
 }
 
 function render() {
@@ -1705,6 +1724,8 @@ function syncControls() {
   dom.cardVisualTypeInput.value = state.settings.cardVisualType || 'standard';
   dom.avatarTreatmentInput.value = state.settings.avatarTreatment || 'default';
   dom.bgColorInput.value = state.settings.bgColor;
+  dom.bgGradientEnabledInput.checked = state.settings.bgGradientEnabled === true;
+  dom.bgGradientColor2Input.value = state.settings.bgGradientColor2 || '#dfe8f3';
   dom.accentColorInput.value = state.settings.accentColor;
   dom.headingColorInput.value = state.settings.headingColor;
   dom.headingSizeInput.value = String(state.settings.headingSize);
@@ -1724,7 +1745,6 @@ function syncControls() {
   dom.avatarStyleInput.value = state.settings.avatarStyle;
   dom.cardElevationInput.value = state.settings.cardElevation;
   dom.infoVisibilityInput.value = state.settings.infoVisibility;
-  dom.backgroundStyleInput.value = state.settings.backgroundStyle;
   dom.autoConnectToggle.checked = state.autoConnect;
 }
 
@@ -1888,6 +1908,16 @@ function bindControlEvents() {
     render();
   });
 
+  dom.bgGradientEnabledInput.addEventListener('change', () => {
+    state.settings.bgGradientEnabled = dom.bgGradientEnabledInput.checked;
+    render();
+  });
+
+  dom.bgGradientColor2Input.addEventListener('input', () => {
+    state.settings.bgGradientColor2 = dom.bgGradientColor2Input.value;
+    render();
+  });
+
   dom.accentColorInput.addEventListener('input', () => {
     state.settings.accentColor = dom.accentColorInput.value;
     render();
@@ -1980,11 +2010,6 @@ function bindControlEvents() {
 
   dom.infoVisibilityInput.addEventListener('change', () => {
     state.settings.infoVisibility = dom.infoVisibilityInput.value;
-    render();
-  });
-
-  dom.backgroundStyleInput.addEventListener('change', () => {
-    state.settings.backgroundStyle = dom.backgroundStyleInput.value;
     render();
   });
 
