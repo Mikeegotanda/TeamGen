@@ -239,6 +239,116 @@
       </details>
 
       <details class="control-dropdown">
+        <summary>Cards</summary>
+        <div class="control-section">
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="cardShapeInput">Card Shape</label>
+              <select id="cardShapeInput">
+                <option value="square">Square</option>
+                <option value="rounded">Rounded</option>
+                <option value="soft">Soft Rounded</option>
+                <option value="pill">Pill</option>
+              </select>
+            </div>
+            <div class="field-stack compact">
+              <label for="cardLayoutInput">Card Layout</label>
+              <select id="cardLayoutInput">
+                <option value="avatar-left">Avatar Left</option>
+                <option value="avatar-top">Avatar Top</option>
+                <option value="compact">Compact</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="avatarStyleInput">Avatar Style</label>
+              <select id="avatarStyleInput">
+                <option value="rounded">Rounded Square</option>
+                <option value="circle">Circle</option>
+                <option value="square">Square</option>
+                <option value="hidden">Hidden</option>
+              </select>
+            </div>
+            <div class="field-stack compact">
+              <label for="cardElevationInput">Card Elevation</label>
+              <select id="cardElevationInput">
+                <option value="flat">Flat</option>
+                <option value="soft">Soft Shadow</option>
+                <option value="floating">Floating</option>
+                <option value="glass">Glass</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-stack compact">
+            <label for="infoVisibilityInput">Information Visibility</label>
+            <select id="infoVisibilityInput">
+              <option value="name-role">Name + Role</option>
+              <option value="name-only">Name Only</option>
+              <option value="name-role-dept">Name + Role + Department</option>
+            </select>
+          </div>
+          <div class="grid-2">
+            <label class="check-wrap">
+              <input id="cardShadowInput" type="checkbox" checked />
+              Card Shadow
+            </label>
+            <label class="check-wrap">
+              <input id="cardOutlineInput" type="checkbox" checked />
+              Card Outline
+            </label>
+          </div>
+          <div class="field-stack compact">
+            <label for="cardRadiusInput">Card Radius</label>
+            <input id="cardRadiusInput" type="range" min="0" max="42" />
+          </div>
+          <div class="field-stack compact">
+            <label for="cardWidthScaleInput">Card Width</label>
+            <input id="cardWidthScaleInput" type="range" min="50" max="130" />
+          </div>
+          <div class="field-stack compact">
+            <label for="cardHeightScaleInput">Card Height</label>
+            <input id="cardHeightScaleInput" type="range" min="45" max="130" />
+          </div>
+          <p class="section-title">Card & Avatar Studio</p>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="cardVisualTypeInput">Card Visual Type</label>
+              <select id="cardVisualTypeInput">
+                <option value="standard">Standard</option>
+                <option value="glass">Glass</option>
+                <option value="elevated">Elevated</option>
+                <option value="minimal">Minimal</option>
+                <option value="outline">Outline</option>
+                <option value="filled">Filled</option>
+                <option value="split">Split Panel</option>
+                <option value="stack">Stack Card</option>
+                <option value="frosted">Frosted</option>
+                <option value="gradient">Gradient</option>
+                <option value="blueprint">Blueprint</option>
+                <option value="editorial">Editorial</option>
+              </select>
+            </div>
+            <div class="field-stack compact">
+              <label for="avatarTreatmentInput">Avatar Treatment</label>
+              <select id="avatarTreatmentInput">
+                <option value="default">Default</option>
+                <option value="circle">Circle</option>
+                <option value="rounded">Rounded</option>
+                <option value="square">Square</option>
+                <option value="monochrome">Monochrome</option>
+                <option value="duotone">Duotone</option>
+                <option value="cutout">Background Cutout</option>
+                <option value="floating">Floating Portrait</option>
+                <option value="hidden">No Avatar</option>
+                <option value="full-bleed">Full Bleed Headshot</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="control-dropdown">
         <summary>Connectors</summary>
         <div class="control-section">
           <div class="grid-2">
@@ -338,50 +448,6 @@
       </details>
 
       <details class="control-dropdown">
-        <summary>Advanced Studio</summary>
-        <div class="control-section">
-
-        <details class="control-dropdown">
-          <summary>Card & Avatar Studio</summary>
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="cardVisualTypeInput">Card Visual Type</label>
-              <select id="cardVisualTypeInput">
-                <option value="standard">Standard</option>
-                <option value="glass">Glass</option>
-                <option value="elevated">Elevated</option>
-                <option value="minimal">Minimal</option>
-                <option value="outline">Outline</option>
-                <option value="filled">Filled</option>
-                <option value="split">Split Panel</option>
-                <option value="stack">Stack Card</option>
-                <option value="frosted">Frosted</option>
-                <option value="gradient">Gradient</option>
-                <option value="blueprint">Blueprint</option>
-                <option value="editorial">Editorial</option>
-              </select>
-            </div>
-            <div class="field-stack compact">
-              <label for="avatarTreatmentInput">Avatar Treatment</label>
-              <select id="avatarTreatmentInput">
-                <option value="default">Default</option>
-                <option value="circle">Circle</option>
-                <option value="rounded">Rounded</option>
-                <option value="square">Square</option>
-                <option value="monochrome">Monochrome</option>
-                <option value="duotone">Duotone</option>
-                <option value="cutout">Background Cutout</option>
-                <option value="floating">Floating Portrait</option>
-                <option value="hidden">No Avatar</option>
-                <option value="full-bleed">Full Bleed Headshot</option>
-              </select>
-            </div>
-          </div>
-        </details>
-        </div>
-      </details>
-
-      <details class="control-dropdown">
         <summary>Colors</summary>
         <div class="control-section">
           <div class="grid-2">
@@ -442,81 +508,6 @@
               <input id="nameBoldInput" type="checkbox" checked />
               Bold Names
             </label>
-          </div>
-        </div>
-      </details>
-
-      <details class="control-dropdown">
-        <summary>Card Style</summary>
-        <div class="control-section">
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="cardShapeInput">Card Shape</label>
-              <select id="cardShapeInput">
-                <option value="square">Square</option>
-                <option value="rounded">Rounded</option>
-                <option value="soft">Soft Rounded</option>
-                <option value="pill">Pill</option>
-              </select>
-            </div>
-            <div class="field-stack compact">
-              <label for="cardLayoutInput">Card Layout</label>
-              <select id="cardLayoutInput">
-                <option value="avatar-left">Avatar Left</option>
-                <option value="avatar-top">Avatar Top</option>
-                <option value="compact">Compact</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="avatarStyleInput">Avatar Style</label>
-              <select id="avatarStyleInput">
-                <option value="rounded">Rounded Square</option>
-                <option value="circle">Circle</option>
-                <option value="square">Square</option>
-                <option value="hidden">Hidden</option>
-              </select>
-            </div>
-            <div class="field-stack compact">
-              <label for="cardElevationInput">Card Elevation</label>
-              <select id="cardElevationInput">
-                <option value="flat">Flat</option>
-                <option value="soft">Soft Shadow</option>
-                <option value="floating">Floating</option>
-                <option value="glass">Glass</option>
-              </select>
-            </div>
-          </div>
-          <div class="field-stack compact">
-            <label for="infoVisibilityInput">Information Visibility</label>
-            <select id="infoVisibilityInput">
-              <option value="name-role">Name + Role</option>
-              <option value="name-only">Name Only</option>
-              <option value="name-role-dept">Name + Role + Department</option>
-            </select>
-          </div>
-          <div class="grid-2">
-            <label class="check-wrap">
-              <input id="cardShadowInput" type="checkbox" checked />
-              Card Shadow
-            </label>
-            <label class="check-wrap">
-              <input id="cardOutlineInput" type="checkbox" checked />
-              Card Outline
-            </label>
-          </div>
-          <div class="field-stack compact">
-            <label for="cardRadiusInput">Card Radius</label>
-            <input id="cardRadiusInput" type="range" min="0" max="42" />
-          </div>
-          <div class="field-stack compact">
-            <label for="cardWidthScaleInput">Card Width</label>
-            <input id="cardWidthScaleInput" type="range" min="50" max="130" />
-          </div>
-          <div class="field-stack compact">
-            <label for="cardHeightScaleInput">Card Height</label>
-            <input id="cardHeightScaleInput" type="range" min="45" max="130" />
           </div>
         </div>
       </details>
