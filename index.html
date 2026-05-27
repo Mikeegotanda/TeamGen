@@ -144,6 +144,37 @@
               <option value="8">8</option>
             </select>
           </div>
+          <p class="section-title">Layout Engine</p>
+          <div class="field-stack compact">
+            <label for="layoutModeInput">Layout Mode</label>
+            <select id="layoutModeInput">
+              <option value="strict">Strict Hierarchy</option>
+              <option value="symmetrical">Symmetrical</option>
+              <option value="editorial">Editorial</option>
+              <option value="clustered">Clustered</option>
+              <option value="masonry">Masonry</option>
+              <option value="organic">Organic</option>
+              <option value="radial">Radial</option>
+              <option value="hexagonal">Hexagonal</option>
+              <option value="swimlane">Swimlane</option>
+              <option value="physics">Physics Based</option>
+            </select>
+          </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="formalOrganicInput">Formal ↔ Organic</label>
+              <input id="formalOrganicInput" type="range" min="0" max="100" />
+            </div>
+            <div class="field-stack compact">
+              <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
+              <input id="symmetryDynamicInput" type="range" min="0" max="100" />
+            </div>
+          </div>
+          <div class="field-stack compact">
+            <label for="structureFreeformInput">Structured ↔ Freeform</label>
+            <input id="structureFreeformInput" type="range" min="0" max="100" />
+          </div>
+          <p class="section-title">Background</p>
           <div class="grid-2">
             <div class="field-stack compact">
               <label for="bgColorInput">Background Color</label>
@@ -272,41 +303,6 @@
       <details class="control-dropdown">
         <summary>Advanced Studio</summary>
         <div class="control-section">
-
-        <details class="control-dropdown">
-          <summary>Layout Modes</summary>
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="layoutModeInput">Layout Mode</label>
-              <select id="layoutModeInput">
-                <option value="strict">Strict Hierarchy</option>
-                <option value="symmetrical">Symmetrical</option>
-                <option value="editorial">Editorial</option>
-                <option value="clustered">Clustered</option>
-                <option value="masonry">Masonry</option>
-                <option value="organic">Organic</option>
-                <option value="radial">Radial</option>
-                <option value="hexagonal">Hexagonal</option>
-                <option value="swimlane">Swimlane</option>
-                <option value="physics">Physics Based</option>
-              </select>
-            </div>
-          </div>
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="formalOrganicInput">Formal ↔ Organic</label>
-              <input id="formalOrganicInput" type="range" min="0" max="100" />
-            </div>
-            <div class="field-stack compact">
-              <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
-              <input id="symmetryDynamicInput" type="range" min="0" max="100" />
-            </div>
-          </div>
-          <div class="field-stack compact">
-            <label for="structureFreeformInput">Structured ↔ Freeform</label>
-            <input id="structureFreeformInput" type="range" min="0" max="100" />
-          </div>
-        </details>
 
         <details class="control-dropdown">
           <summary>Depth & Atmosphere</summary>
