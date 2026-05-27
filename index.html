@@ -527,6 +527,38 @@
         </div>
       </details>
 
+      <details id="cardControlsSection" class="control-dropdown card-controls-only-selected is-hidden">
+        <summary>Card Controls</summary>
+        <div class="control-section">
+          <p id="selectedCardLabel" class="selected-card-label">No card selected.</p>
+          <div class="grid-2">
+            <label class="check-wrap">
+              <input id="cardControlOutlineEnabledInput" type="checkbox" />
+              Card Outline
+            </label>
+            <div class="field-stack compact">
+              <label for="cardControlOutlineColorInput">Outline Color</label>
+              <input id="cardControlOutlineColorInput" type="color" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <label class="check-wrap">
+              <input id="cardControlGlowEnabledInput" type="checkbox" />
+              Card Glow
+            </label>
+            <div class="field-stack compact">
+              <label for="cardControlGlowColorInput">Glow Color</label>
+              <input id="cardControlGlowColorInput" type="color" />
+            </div>
+          </div>
+          <div class="field-stack compact">
+            <label for="cardControlGlowStrengthInput">Glow Strength</label>
+            <input id="cardControlGlowStrengthInput" type="range" min="0" max="100" />
+          </div>
+          <button id="deleteSelectedCardBtn" class="btn btn-danger" type="button">Delete Selected Card</button>
+        </div>
+      </details>
+
       <div id="statusText" class="status-text" role="status" aria-live="polite"></div>
     </aside>
   </div>

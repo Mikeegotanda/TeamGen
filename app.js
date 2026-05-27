@@ -339,6 +339,14 @@ const dom = {
   exportPdfBtn: document.getElementById('exportPdfBtn'),
   exportPptxBtn: document.getElementById('exportPptxBtn'),
   exportHtmlBtn: document.getElementById('exportHtmlBtn'),
+  cardControlsSection: document.getElementById('cardControlsSection'),
+  selectedCardLabel: document.getElementById('selectedCardLabel'),
+  cardControlOutlineEnabledInput: document.getElementById('cardControlOutlineEnabledInput'),
+  cardControlOutlineColorInput: document.getElementById('cardControlOutlineColorInput'),
+  cardControlGlowEnabledInput: document.getElementById('cardControlGlowEnabledInput'),
+  cardControlGlowColorInput: document.getElementById('cardControlGlowColorInput'),
+  cardControlGlowStrengthInput: document.getElementById('cardControlGlowStrengthInput'),
+  deleteSelectedCardBtn: document.getElementById('deleteSelectedCardBtn'),
   statusText: document.getElementById('statusText'),
   previewHost: document.getElementById('previewHost')
 };
@@ -657,6 +665,46 @@ function removeCanvasNode(nodeId) {
   }
   render();
   notify(member ? `Removed ${member.name} from canvas.` : 'Card removed from canvas.');
+}
+
+function getSelectedCanvasNode() {
+  if (!state.selectedCardId) {
+    return null;
+  }
+  return state.nodes[state.selectedCardId] || null;
+}
+
+function getNodeCardControls(node) {
+  if (!node.cardControls || typeof node.cardControls !== 'object') {
+    node.cardControls = {};
+  }
+  return node.cardControls;
+}
+
+function syncSelectedCardControls() {
+  if (!dom.cardControlsSection) {
+    return;
+  }
+  const node = getSelectedCanvasNode();
+  if (!node) {
+    dom.cardControlsSection.classList.add('is-hidden');
+    return;
+  }
+
+  const member = getMemberById(node.memberId);
+  const controls = getNodeCardControls(node);
+  const outlineEnabled = typeof controls.outlineEnabled === 'boolean' ? controls.outlineEnabled : state.settings.showOutline;
+  const glowEnabled = controls.glowEnabled === true;
+
+  dom.cardControlsSection.classList.remove('is-hidden');
+  dom.selectedCardLabel.textContent = member ? `Selected: ${member.name}` : `Selected Card: ${node.id}`;
+  dom.cardControlOutlineEnabledInput.checked = outlineEnabled;
+  dom.cardControlOutlineColorInput.value = controls.outlineColor || state.settings.outlineColor;
+  dom.cardControlGlowEnabledInput.checked = glowEnabled;
+  dom.cardControlGlowColorInput.value = controls.glowColor || state.settings.accentColor;
+  dom.cardControlGlowStrengthInput.value = String(
+    Number.isFinite(Number(controls.glowStrength)) ? Number(controls.glowStrength) : 38
+  );
 }
 
 function sortedDepartments() {
@@ -1259,13 +1307,30 @@ function renderCards(layouts) {
       const visual = cardVisualStyles();
       const animationClass = entranceClass ? ` ${entranceClass}` : '';
       const animationDelay = cardAnimationDelay(layout, timings);
+      const controls = node.cardControls || {};
+      const hasOutlineOverride =
+        typeof controls.outlineEnabled === 'boolean' || typeof controls.outlineColor === 'string';
+      const outlineEnabled =
+        typeof controls.outlineEnabled === 'boolean' ? controls.outlineEnabled : state.settings.showOutline;
+      const outlineColor = controls.outlineColor || state.settings.outlineColor;
+      const customOutline = outlineEnabled
+        ? `${state.settings.outlineWidth}px solid ${outlineColor}`
+        : '0px solid transparent';
+      const cardBorderValue = hasOutlineOverride ? customOutline : visual.border || cardBorder;
+      const glowEnabled = controls.glowEnabled === true;
+      const glowColor = controls.glowColor || state.settings.accentColor;
+      const glowStrength = clamp(Number(controls.glowStrength ?? 38), 0, 100) / 100;
+      const glowBlur = Math.round(14 + glowStrength * 44);
+      const glowSpread = Math.round(1 + glowStrength * 4);
+      const glowShadow = glowEnabled ? `0 0 ${glowBlur}px ${glowSpread}px ${withAlpha(glowColor, '96')}` : '';
+      const cardShadowValue = glowShadow ? `${cardShadow}, ${glowShadow}` : cardShadow;
       const style = [
         `left:${layout.x}px`,
         `top:${layout.y}px`,
         `width:${layout.width}px`,
         `height:${layout.height}px`,
-        `border:${visual.border || cardBorder}`,
-        `box-shadow:${cardShadow}`,
+        `border:${cardBorderValue}`,
+        `box-shadow:${cardShadowValue}`,
         `border-radius:${cardRadius}px`,
         `--enter-duration:${timings.cardDuration}ms`,
         `--enter-delay:${animationDelay}ms`,
@@ -1668,6 +1733,7 @@ function render() {
   const layouts = rowLayouts();
   renderCards(layouts);
   renderConnectors(layouts);
+  syncSelectedCardControls();
   persistState();
 }
 
@@ -1776,6 +1842,7 @@ function syncControls() {
   dom.cardElevationInput.value = state.settings.cardElevation;
   dom.infoVisibilityInput.value = state.settings.infoVisibility;
   dom.autoConnectToggle.checked = state.autoConnect;
+  syncSelectedCardControls();
 }
 
 function applyPreset(type, keepCurrentTitle = false) {
@@ -2041,6 +2108,64 @@ function bindControlEvents() {
   dom.infoVisibilityInput.addEventListener('change', () => {
     state.settings.infoVisibility = dom.infoVisibilityInput.value;
     render();
+  });
+
+  dom.cardControlOutlineEnabledInput.addEventListener('change', () => {
+    const node = getSelectedCanvasNode();
+    if (!node) {
+      return;
+    }
+    const controls = getNodeCardControls(node);
+    controls.outlineEnabled = dom.cardControlOutlineEnabledInput.checked;
+    render();
+  });
+
+  dom.cardControlOutlineColorInput.addEventListener('input', () => {
+    const node = getSelectedCanvasNode();
+    if (!node) {
+      return;
+    }
+    const controls = getNodeCardControls(node);
+    controls.outlineColor = dom.cardControlOutlineColorInput.value;
+    render();
+  });
+
+  dom.cardControlGlowEnabledInput.addEventListener('change', () => {
+    const node = getSelectedCanvasNode();
+    if (!node) {
+      return;
+    }
+    const controls = getNodeCardControls(node);
+    controls.glowEnabled = dom.cardControlGlowEnabledInput.checked;
+    render();
+  });
+
+  dom.cardControlGlowColorInput.addEventListener('input', () => {
+    const node = getSelectedCanvasNode();
+    if (!node) {
+      return;
+    }
+    const controls = getNodeCardControls(node);
+    controls.glowColor = dom.cardControlGlowColorInput.value;
+    render();
+  });
+
+  dom.cardControlGlowStrengthInput.addEventListener('input', () => {
+    const node = getSelectedCanvasNode();
+    if (!node) {
+      return;
+    }
+    const controls = getNodeCardControls(node);
+    controls.glowStrength = Number(dom.cardControlGlowStrengthInput.value);
+    render();
+  });
+
+  dom.deleteSelectedCardBtn.addEventListener('click', () => {
+    const node = getSelectedCanvasNode();
+    if (!node) {
+      return;
+    }
+    removeCanvasNode(node.id);
   });
 
   dom.autoConnectToggle.addEventListener('change', () => {
