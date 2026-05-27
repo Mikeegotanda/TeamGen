@@ -371,6 +371,19 @@ body {
   stroke-linejoin: round;
 }
 
+.connector-line.anim-connector-fade {
+  opacity: 0;
+  animation: connectorFadeIn var(--connector-duration, 900ms) ease-out var(--connector-delay, 0ms) forwards;
+}
+
+.connector-line.anim-connector-draw {
+  animation: connectorDrawIn var(--connector-duration, 900ms) cubic-bezier(0.2, 0.65, 0.2, 1) var(--connector-delay, 0ms) forwards;
+}
+
+.connector-line.anim-connector-flow {
+  animation: connectorFlow 1500ms linear var(--connector-delay, 0ms) infinite;
+}
+
 .card-layer {
   position: absolute;
   inset: 0;
@@ -389,6 +402,32 @@ body {
   grid-template-rows: auto 1fr;
   user-select: none;
   cursor: pointer;
+  transform-origin: center top;
+}
+
+.canvas-card.anim-card-cascade {
+  opacity: 0;
+  animation: cardCascadeIn var(--enter-duration, 560ms) cubic-bezier(0.18, 0.75, 0.24, 1) var(--enter-delay, 0ms) forwards;
+}
+
+.canvas-card.anim-card-tree {
+  opacity: 0;
+  animation: cardTreeGrowIn var(--enter-duration, 560ms) cubic-bezier(0.22, 0.7, 0.2, 1) var(--enter-delay, 0ms) forwards;
+}
+
+.canvas-card.anim-card-fade {
+  opacity: 0;
+  animation: cardFadeIn var(--enter-duration, 560ms) ease-out var(--enter-delay, 0ms) forwards;
+}
+
+.canvas-card.anim-card-slide {
+  opacity: 0;
+  animation: cardSlideIn var(--enter-duration, 560ms) cubic-bezier(0.2, 0.75, 0.24, 1) var(--enter-delay, 0ms) forwards;
+}
+
+.canvas-card.anim-card-pop {
+  opacity: 0;
+  animation: cardPopIn var(--enter-duration, 560ms) cubic-bezier(0.2, 0.8, 0.22, 1) var(--enter-delay, 0ms) forwards;
 }
 
 .canvas-card .card-accent {
@@ -482,6 +521,105 @@ body {
 .drop-active {
   outline: 3px dashed rgba(39, 116, 255, 0.65);
   outline-offset: -6px;
+}
+
+@keyframes cardCascadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes cardTreeGrowIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.84);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes connectorFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes connectorDrawIn {
+  from {
+    stroke-dashoffset: var(--dash-start, 1000);
+    opacity: 0.92;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes connectorFlow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -48;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-card[class*="anim-card-"],
+  .connector-line[class*="anim-connector-"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    stroke-dashoffset: 0 !important;
+  }
 }
 
 @media (max-width: 1400px) {
