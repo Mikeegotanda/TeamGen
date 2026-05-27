@@ -179,8 +179,6 @@ const dom = {
   exportPdfBtn: document.getElementById('exportPdfBtn'),
   exportPptxBtn: document.getElementById('exportPptxBtn'),
   exportHtmlBtn: document.getElementById('exportHtmlBtn'),
-  aiPrompt: document.getElementById('aiPrompt'),
-  aiGenerateBtn: document.getElementById('aiGenerateBtn'),
   statusText: document.getElementById('statusText'),
   previewHost: document.getElementById('previewHost')
 };
@@ -863,8 +861,6 @@ function bindControlEvents() {
   dom.exportPdfBtn.addEventListener('click', exportPdf);
   dom.exportPptxBtn.addEventListener('click', exportPptx);
   dom.exportHtmlBtn.addEventListener('click', exportHtml);
-  dom.aiGenerateBtn.addEventListener('click', generateFromPrompt);
-
   dom.cardLayer.addEventListener('dragover', (event) => {
     event.preventDefault();
     dom.cardLayer.classList.add('drop-active');
