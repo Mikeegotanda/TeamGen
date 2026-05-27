@@ -1260,11 +1260,34 @@ function toFileName(base, extension) {
   return `${core}.${extension}`;
 }
 
-async function capturePngDataUrl() {
-  return window.htmlToImage.toPng(dom.slide, {
-    cacheBust: true,
-    pixelRatio: 2
-  });
+async function capturePngDataUrl(options = {}) {
+  const transparent = options.transparent === true;
+  const originalBackground = dom.slide.style.background;
+  const originalBackgroundImage = dom.slide.style.backgroundImage;
+  const originalBackgroundSize = dom.slide.style.backgroundSize;
+  const originalBoxShadow = dom.slide.style.boxShadow;
+
+  if (transparent) {
+    dom.slide.style.background = 'transparent';
+    dom.slide.style.backgroundImage = 'none';
+    dom.slide.style.backgroundSize = 'auto';
+    dom.slide.style.boxShadow = 'none';
+  }
+
+  try {
+    return await window.htmlToImage.toPng(dom.slide, {
+      cacheBust: true,
+      pixelRatio: 2,
+      backgroundColor: transparent ? 'transparent' : undefined
+    });
+  } finally {
+    if (transparent) {
+      dom.slide.style.background = originalBackground;
+      dom.slide.style.backgroundImage = originalBackgroundImage;
+      dom.slide.style.backgroundSize = originalBackgroundSize;
+      dom.slide.style.boxShadow = originalBoxShadow;
+    }
+  }
 }
 
 function downloadDataUrl(dataUrl, fileName) {
@@ -1276,10 +1299,10 @@ function downloadDataUrl(dataUrl, fileName) {
 
 async function exportPng() {
   try {
-    notify('Rendering PNG...');
-    const dataUrl = await capturePngDataUrl();
+    notify('Rendering transparent PNG...');
+    const dataUrl = await capturePngDataUrl({ transparent: true });
     downloadDataUrl(dataUrl, toFileName('team-slide', 'png'));
-    notify('PNG exported.');
+    notify('Transparent PNG exported.');
   } catch (error) {
     console.error(error);
     notify('PNG export failed.');
