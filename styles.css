@@ -284,11 +284,11 @@ body {
 }
 
 .slide-header {
-  height: 112px;
+  min-height: 112px;
   display: grid;
   grid-template-columns: 1fr;
   align-items: center;
-  padding: 0;
+  padding: 8px 0 4px;
   position: relative;
 }
 
@@ -305,7 +305,7 @@ body {
 
 .slide-body {
   position: absolute;
-  inset: 112px 0 30px;
+  inset: var(--header-height, 128px) 0 18px;
 }
 
 .connector-layer {

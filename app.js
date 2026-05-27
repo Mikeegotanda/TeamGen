@@ -154,6 +154,7 @@ const dom = {
   cardLayer: document.getElementById('cardLayer'),
   connectorLayer: document.getElementById('connectorLayer'),
   slide: document.getElementById('slidePreview'),
+  slideHeader: document.getElementById('slideHeader'),
   slideTitle: document.getElementById('slideTitle'),
   slideType: document.getElementById('slideType'),
   titleInput: document.getElementById('titleInput'),
@@ -219,16 +220,32 @@ function currentCardSize() {
 }
 
 function getBodyMetrics() {
+  const cardSize = currentCardSize();
+  const bodyWidth = dom.cardLayer.clientWidth || 1280;
+  const bodyHeight = dom.cardLayer.clientHeight || 560;
+  const halfWidth = cardSize.width / 2;
+  const halfHeight = cardSize.height / 2;
+  const sidePadding = state.settings.cardStyle === 'pill' ? 34 : 24;
+  const topPadding = state.settings.cardStyle === 'intro' ? 24 : 16;
+  const bottomPadding = state.settings.cardStyle === 'intro' ? 30 : 18;
+  const left = halfWidth + sidePadding;
+  const right = bodyWidth - halfWidth - sidePadding;
+  const top = halfHeight + topPadding;
+  const bottom = bodyHeight - halfHeight - bottomPadding;
+
   return {
-    top: state.settings.cardStyle === 'intro' ? 36 : 48,
-    bottom: state.settings.cardStyle === 'intro' ? 546 : 540,
-    left: state.settings.cardStyle === 'pill' ? 120 : 160,
-    right: state.settings.cardStyle === 'pill' ? 1160 : 1120
+    top: Math.max(halfHeight + 8, top),
+    bottom: Math.max(halfHeight + 8, bottom),
+    left: Math.max(halfWidth + 8, left),
+    right: Math.max(halfWidth + 8, right)
   };
 }
 
 function computeRowY(index, count) {
   const metrics = getBodyMetrics();
+  if (metrics.bottom <= metrics.top) {
+    return metrics.top;
+  }
   if (count <= 1) {
     return (metrics.top + metrics.bottom) / 2;
   }
@@ -623,6 +640,12 @@ function renderConnectors(layouts) {
   dom.connectorLayer.innerHTML = paths.join('');
 }
 
+function updateHeaderHeight() {
+  const measured = dom.slideHeader?.offsetHeight || 112;
+  const headerHeight = Math.max(112, measured + 4);
+  dom.slide.style.setProperty('--header-height', `${headerHeight}px`);
+}
+
 function applyStyleToSlide() {
   dom.slide.style.setProperty('--slide-bg', state.settings.bgColor);
   dom.slide.style.setProperty('--slide-accent', state.settings.accentColor);
@@ -641,6 +664,7 @@ function applyStyleToSlide() {
   dom.slideTitle.style.fontSize = `${state.settings.headingSize}px`;
   dom.slideTitle.style.fontFamily = `${state.settings.headingFont}, sans-serif`;
   dom.slideTitle.style.fontWeight = state.settings.headingBold ? '800' : '600';
+  updateHeaderHeight();
 
   if (state.settings.type === 'introduction') {
     dom.slide.style.backgroundImage = `${state.settings.bgImage ? `url(${state.settings.bgImage}),` : ''}radial-gradient(circle at 50% -20%, rgba(255,255,255,0.48), rgba(255,255,255,0))`;
@@ -859,8 +883,8 @@ function bindControlEvents() {
     }
 
     const layerRect = dom.cardLayer.getBoundingClientRect();
-    const x = ((event.clientX - layerRect.left) / layerRect.width) * 1280;
-    const y = ((event.clientY - layerRect.top) / layerRect.height) * (720 - 142);
+    const x = ((event.clientX - layerRect.left) / layerRect.width) * (dom.cardLayer.clientWidth || 1280);
+    const y = ((event.clientY - layerRect.top) / layerRect.height) * (dom.cardLayer.clientHeight || 560);
     addNode(memberId, x, y);
     notify('Card added to canvas.');
   });
@@ -905,8 +929,8 @@ function startCardDrag(event, nodeId) {
     }
 
     const layerRect = dom.cardLayer.getBoundingClientRect();
-    const x = ((upEvent.clientX - layerRect.left) / layerRect.width) * 1280;
-    const y = ((upEvent.clientY - layerRect.top) / layerRect.height) * (720 - 142);
+    const x = ((upEvent.clientX - layerRect.left) / layerRect.width) * (dom.cardLayer.clientWidth || 1280);
+    const y = ((upEvent.clientY - layerRect.top) / layerRect.height) * (dom.cardLayer.clientHeight || 560);
     placeNodeAtPoint(nodeId, x, y);
     state.draggingNodeId = null;
     notify('Card moved.');
