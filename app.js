@@ -23,6 +23,7 @@ const PRESETS = {
     nameBold: true,
     cardStyle: 'classic',
     bgImage: '',
+    bgImageOpacity: 100,
     themePreset: 'corporate',
     hierarchyDirection: 'top-down',
     nodeSpacing: 'balanced',
@@ -80,6 +81,7 @@ const PRESETS = {
     nameBold: true,
     cardStyle: 'classic',
     bgImage: '',
+    bgImageOpacity: 100,
     themePreset: 'corporate',
     hierarchyDirection: 'top-down',
     nodeSpacing: 'balanced',
@@ -137,6 +139,7 @@ const PRESETS = {
     nameBold: true,
     cardStyle: 'pill',
     bgImage: '',
+    bgImageOpacity: 100,
     themePreset: 'corporate',
     hierarchyDirection: 'top-down',
     nodeSpacing: 'balanced',
@@ -194,6 +197,7 @@ const PRESETS = {
     nameBold: true,
     cardStyle: 'intro',
     bgImage: '',
+    bgImageOpacity: 100,
     themePreset: 'minimal',
     hierarchyDirection: 'top-down',
     nodeSpacing: 'balanced',
@@ -253,6 +257,7 @@ function normalizeSettings(settings) {
   normalized.cardHeightScale = Number.isFinite(Number(normalized.cardHeightScale)) ? Number(normalized.cardHeightScale) : 100;
   normalized.bgGradientEnabled = typeof normalized.bgGradientEnabled === 'boolean' ? normalized.bgGradientEnabled : legacyGradientEnabled;
   normalized.bgGradientColor2 = normalized.bgGradientColor2 || '#dfe8f3';
+  normalized.bgImageOpacity = Number.isFinite(Number(normalized.bgImageOpacity)) ? clamp(Number(normalized.bgImageOpacity), 0, 100) : 100;
   return normalized;
 }
 
@@ -336,6 +341,8 @@ const dom = {
   cardElevationInput: document.getElementById('cardElevationInput'),
   infoVisibilityInput: document.getElementById('infoVisibilityInput'),
   backgroundImageInput: document.getElementById('backgroundImageInput'),
+  bgImageOpacityInput: document.getElementById('bgImageOpacityInput'),
+  removeBackgroundImageBtn: document.getElementById('removeBackgroundImageBtn'),
   autoConnectToggle: document.getElementById('autoConnectToggle'),
   clearCanvasBtn: document.getElementById('clearCanvasBtn'),
   saveChartBtn: document.getElementById('saveChartBtn'),
@@ -396,6 +403,12 @@ function withAlpha(color, alphaHex) {
     return `${expanded}${alphaHex}`;
   }
   return value;
+}
+
+function alphaHexFromPercent(percent) {
+  const normalized = clamp(Number(percent), 0, 100);
+  const alpha = Math.round((normalized / 100) * 255);
+  return alpha.toString(16).padStart(2, '0').toUpperCase();
 }
 
 function lerp(a, b, t) {
@@ -1675,6 +1688,7 @@ function applySlideBackgroundLayers() {
   const bg = state.settings.bgColor || '#ffffff';
   const gradientColor2 = state.settings.bgGradientColor2 || '#dfe8f3';
   const depth = clamp(Number(state.settings.backgroundDepth || 0) / 100, 0, 1);
+  const bgImageOpacity = clamp(Number(state.settings.bgImageOpacity ?? 100), 0, 100);
   const images = [];
   const sizes = [];
   const positions = [];
@@ -1695,6 +1709,11 @@ function applySlideBackgroundLayers() {
   }
 
   if (state.settings.bgImage) {
+    const coverAlpha = alphaHexFromPercent(100 - bgImageOpacity);
+    images.push(`linear-gradient(${withAlpha(bg, coverAlpha)}, ${withAlpha(bg, coverAlpha)})`);
+    sizes.push('cover');
+    positions.push('center center');
+    repeats.push('no-repeat');
     images.push(`url(${state.settings.bgImage})`);
     sizes.push('cover');
     positions.push('center center');
@@ -1830,6 +1849,10 @@ function syncControls() {
   dom.bgColorInput.value = state.settings.bgColor;
   dom.bgGradientEnabledInput.checked = state.settings.bgGradientEnabled === true;
   dom.bgGradientColor2Input.value = state.settings.bgGradientColor2 || '#dfe8f3';
+  dom.bgImageOpacityInput.value = String(state.settings.bgImageOpacity ?? 100);
+  const hasBackgroundImage = Boolean(state.settings.bgImage);
+  dom.bgImageOpacityInput.disabled = !hasBackgroundImage;
+  dom.removeBackgroundImageBtn.disabled = !hasBackgroundImage;
   dom.accentColorInput.value = state.settings.accentColor;
   dom.headingColorInput.value = state.settings.headingColor;
   dom.headingSizeInput.value = String(state.settings.headingSize);
@@ -2205,8 +2228,27 @@ function bindControlEvents() {
       return;
     }
     state.settings.bgImage = await fileToDataUrl(file);
+    if (!Number.isFinite(Number(state.settings.bgImageOpacity))) {
+      state.settings.bgImageOpacity = 100;
+    }
     render();
     notify('Background image applied.');
+  });
+
+  dom.bgImageOpacityInput.addEventListener('input', () => {
+    state.settings.bgImageOpacity = Number(dom.bgImageOpacityInput.value);
+    render();
+  });
+
+  dom.removeBackgroundImageBtn.addEventListener('click', () => {
+    if (!state.settings.bgImage) {
+      notify('No background image to remove.');
+      return;
+    }
+    state.settings.bgImage = '';
+    dom.backgroundImageInput.value = '';
+    render();
+    notify('Background image removed.');
   });
 
   dom.exportPngBtn.addEventListener('click', exportPng);
