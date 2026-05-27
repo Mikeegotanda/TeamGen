@@ -1726,7 +1726,7 @@ function applyStyleToSlide() {
   dom.slide.style.setProperty('--card-outline', state.settings.outlineColor);
   const blurStrength = clamp(Number(state.settings.blurStrength || 10), 0, 24);
   const shadowIntensity = clamp((Number(state.settings.shadowIntensity) || 100) / 100, 0, 2.2);
-  const glow = state.settings.ambientGlow ? `0 0 ${Math.round(28 + shadowIntensity * 30)}px ${state.settings.accentColor}30` : '';
+  const glow = '';
   dom.slide.style.boxShadow = `0 ${Math.round(18 * shadowIntensity)}px ${Math.round(34 * shadowIntensity)}px rgba(23, 33, 45, ${0.22 * Math.max(0.4, shadowIntensity)})${glow ? `, ${glow}` : ''}`;
   dom.slide.style.backdropFilter = `blur(${Math.round(blurStrength * 0.12)}px)`;
 
@@ -1841,7 +1841,9 @@ function syncControls() {
   if (dom.parallaxAmountInput) {
     dom.parallaxAmountInput.value = String(state.settings.parallaxAmount ?? 8);
   }
-  dom.ambientGlowInput.checked = state.settings.ambientGlow === true;
+  if (dom.ambientGlowInput) {
+    dom.ambientGlowInput.checked = state.settings.ambientGlow === true;
+  }
   dom.connectorVisualStyleInput.value = state.settings.connectorVisualStyle || 'default';
   dom.connectorDecorationInput.value = state.settings.connectorDecoration || 'none';
   dom.cardVisualTypeInput.value = state.settings.cardVisualType || 'standard';
@@ -2008,10 +2010,12 @@ function bindControlEvents() {
     });
   }
 
-  dom.ambientGlowInput.addEventListener('change', () => {
-    state.settings.ambientGlow = dom.ambientGlowInput.checked;
-    render();
-  });
+  if (dom.ambientGlowInput) {
+    dom.ambientGlowInput.addEventListener('change', () => {
+      state.settings.ambientGlow = dom.ambientGlowInput.checked;
+      render();
+    });
+  }
 
   dom.connectorVisualStyleInput.addEventListener('change', () => {
     state.settings.connectorVisualStyle = dom.connectorVisualStyleInput.value;
