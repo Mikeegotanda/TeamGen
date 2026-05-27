@@ -204,7 +204,6 @@ const dom = {
   slide: document.getElementById('slidePreview'),
   slideHeader: document.getElementById('slideHeader'),
   slideTitle: document.getElementById('slideTitle'),
-  themePresetInput: document.getElementById('themePresetInput'),
   hierarchyDirectionInput: document.getElementById('hierarchyDirectionInput'),
   nodeSpacingInput: document.getElementById('nodeSpacingInput'),
   connectorStyleInput: document.getElementById('connectorStyleInput'),
@@ -904,47 +903,6 @@ function backgroundSizingFromStyle() {
   return 'cover';
 }
 
-function applyThemePreset(preset) {
-  if (preset === 'modern') {
-    Object.assign(state.settings, {
-      bgColor: '#edf2f8',
-      accentColor: '#3a7cff',
-      headingColor: '#0f172a',
-      cardBg: '#ffffff',
-      cardTextColor: '#101a2a',
-      cardSubColor: '#3e4a5e'
-    });
-  } else if (preset === 'blueprint') {
-    Object.assign(state.settings, {
-      bgColor: '#d7e6f8',
-      accentColor: '#1f5ea8',
-      headingColor: '#0b2a4e',
-      cardBg: '#f7fbff',
-      cardTextColor: '#0f2d4f',
-      cardSubColor: '#385571',
-      backgroundStyle: 'blueprint'
-    });
-  } else if (preset === 'minimal') {
-    Object.assign(state.settings, {
-      bgColor: '#f1f2f4',
-      accentColor: '#5f6977',
-      headingColor: '#171d26',
-      cardBg: '#ffffff',
-      cardTextColor: '#1a2230',
-      cardSubColor: '#4f5a6a'
-    });
-  } else {
-    Object.assign(state.settings, {
-      bgColor: '#e5e5e5',
-      accentColor: '#2f66c7',
-      headingColor: '#0f131a',
-      cardBg: '#ffffff',
-      cardTextColor: '#101820',
-      cardSubColor: '#263342'
-    });
-  }
-}
-
 function applyStyleToSlide() {
   dom.slide.style.setProperty('--slide-bg', state.settings.bgColor);
   dom.slide.style.setProperty('--slide-accent', state.settings.accentColor);
@@ -1024,7 +982,6 @@ function fileToDataUrl(file) {
 }
 
 function syncControls() {
-  dom.themePresetInput.value = state.settings.themePreset;
   dom.hierarchyDirectionInput.value = state.settings.hierarchyDirection;
   dom.nodeSpacingInput.value = state.settings.nodeSpacing;
   dom.connectorStyleInput.value = state.settings.connectorStyle;
@@ -1071,13 +1028,6 @@ function bindControlEvents() {
   dom.memberSearch.addEventListener('input', renderLibrary);
   dom.memberDepartmentFilter.addEventListener('change', renderLibrary);
   dom.addMemberBtn.addEventListener('click', addMemberFromForm);
-
-  dom.themePresetInput.addEventListener('change', () => {
-    state.settings.themePreset = dom.themePresetInput.value;
-    applyThemePreset(state.settings.themePreset);
-    syncControls();
-    render();
-  });
 
   dom.hierarchyDirectionInput.addEventListener('change', () => {
     state.settings.hierarchyDirection = dom.hierarchyDirectionInput.value;
