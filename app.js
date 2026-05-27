@@ -1832,7 +1832,9 @@ function syncControls() {
   if (dom.floatingCardsInput) {
     dom.floatingCardsInput.checked = state.settings.floatingCards !== false;
   }
-  dom.parallaxEnabledInput.checked = state.settings.parallaxEnabled === true;
+  if (dom.parallaxEnabledInput) {
+    dom.parallaxEnabledInput.checked = state.settings.parallaxEnabled === true;
+  }
   if (dom.backgroundDepthInput) {
     dom.backgroundDepthInput.value = String(state.settings.backgroundDepth ?? 24);
   }
@@ -1988,14 +1990,16 @@ function bindControlEvents() {
     });
   }
 
-  dom.parallaxEnabledInput.addEventListener('change', () => {
-    state.settings.parallaxEnabled = dom.parallaxEnabledInput.checked;
-    if (!state.settings.parallaxEnabled) {
-      dom.cardLayer.style.transform = 'translate3d(0, 0, 0)';
-      dom.connectorLayer.style.transform = 'translate3d(0, 0, 0)';
-    }
-    render();
-  });
+  if (dom.parallaxEnabledInput) {
+    dom.parallaxEnabledInput.addEventListener('change', () => {
+      state.settings.parallaxEnabled = dom.parallaxEnabledInput.checked;
+      if (!state.settings.parallaxEnabled) {
+        dom.cardLayer.style.transform = 'translate3d(0, 0, 0)';
+        dom.connectorLayer.style.transform = 'translate3d(0, 0, 0)';
+      }
+      render();
+    });
+  }
 
   if (dom.parallaxAmountInput) {
     dom.parallaxAmountInput.addEventListener('input', () => {
@@ -2627,21 +2631,8 @@ function scalePreview() {
 }
 
 function applyParallaxFromPointer(event) {
-  if (!state.settings.parallaxEnabled) {
-    dom.cardLayer.style.transform = 'translate3d(0, 0, 0)';
-    dom.connectorLayer.style.transform = 'translate3d(0, 0, 0)';
-    return;
-  }
-  const rect = dom.slide.getBoundingClientRect();
-  const px = clamp((event.clientX - rect.left) / rect.width, 0, 1) - 0.5;
-  const py = clamp((event.clientY - rect.top) / rect.height, 0, 1) - 0.5;
-  const amount = clamp(Number(state.settings.parallaxAmount || 8), 0, 24);
-  const cardX = Math.round(px * amount * 2);
-  const cardY = Math.round(py * amount * 2);
-  const lineX = Math.round(px * amount * 1.2);
-  const lineY = Math.round(py * amount * 1.2);
-  dom.cardLayer.style.transform = `translate3d(${cardX}px, ${cardY}px, 0)`;
-  dom.connectorLayer.style.transform = `translate3d(${lineX}px, ${lineY}px, 0)`;
+  dom.cardLayer.style.transform = 'translate3d(0, 0, 0)';
+  dom.connectorLayer.style.transform = 'translate3d(0, 0, 0)';
 }
 
 function cloneSnapshotData(value) {
