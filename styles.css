@@ -236,6 +236,27 @@ body {
   background: rgba(255, 233, 238, 0.95);
 }
 
+.member-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.member-edit-btn {
+  border: 1px solid rgba(86, 116, 156, 0.45);
+  background: rgba(240, 246, 255, 0.92);
+  color: #29486f;
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.member-edit-btn:hover {
+  background: rgba(228, 239, 255, 0.95);
+}
+
 .library-empty {
   border: 1px dashed rgba(130, 151, 177, 0.45);
   border-radius: var(--ui-radius);

@@ -231,6 +231,7 @@ const state = {
   nodes: {},
   manualLinks: [],
   selectedCardId: null,
+  editingMemberId: null,
   nodeSequence: 1,
   settings: normalizeSettings(structuredClone(PRESETS.preconstruction)),
   autoConnect: true,
@@ -244,11 +245,14 @@ const dom = {
   removeDepartmentInput: document.getElementById('removeDepartmentInput'),
   removeDepartmentBtn: document.getElementById('removeDepartmentBtn'),
   clearLibraryBtn: document.getElementById('clearLibraryBtn'),
+  memberFormBox: document.getElementById('memberFormBox'),
+  memberFormSummary: document.getElementById('memberFormSummary'),
   newMemberName: document.getElementById('newMemberName'),
   newMemberTitle: document.getElementById('newMemberTitle'),
   newMemberDepartment: document.getElementById('newMemberDepartment'),
   newMemberPhoto: document.getElementById('newMemberPhoto'),
   addMemberBtn: document.getElementById('addMemberBtn'),
+  cancelEditMemberBtn: document.getElementById('cancelEditMemberBtn'),
   cardLayer: document.getElementById('cardLayer'),
   connectorLayer: document.getElementById('connectorLayer'),
   slide: document.getElementById('slidePreview'),
@@ -603,6 +607,9 @@ function removeMember(memberId) {
     return;
   }
   state.members = state.members.filter((item) => item.id !== memberId);
+  if (state.editingMemberId === memberId) {
+    resetMemberForm();
+  }
   removeNodesForMemberIds([memberId]);
   renderLibrary();
   render();
@@ -634,10 +641,53 @@ function removeDepartment() {
 
 function clearLibraryMembers() {
   state.members = [];
+  resetMemberForm();
   clearCanvas();
   renderLibrary();
   render();
   notify('Team library cleared.');
+}
+
+function resetMemberForm() {
+  state.editingMemberId = null;
+  dom.newMemberName.value = '';
+  dom.newMemberTitle.value = '';
+  dom.newMemberDepartment.value = '';
+  dom.newMemberPhoto.value = '';
+  if (dom.memberFormSummary) {
+    dom.memberFormSummary.textContent = 'Add Team Member';
+  }
+  if (dom.addMemberBtn) {
+    dom.addMemberBtn.textContent = 'Add Member';
+  }
+  if (dom.cancelEditMemberBtn) {
+    dom.cancelEditMemberBtn.hidden = true;
+  }
+}
+
+function startMemberEdit(memberId) {
+  const member = getMemberById(memberId);
+  if (!member) {
+    return;
+  }
+  state.editingMemberId = memberId;
+  dom.newMemberName.value = member.name || '';
+  dom.newMemberTitle.value = member.title || '';
+  dom.newMemberDepartment.value = member.department || '';
+  dom.newMemberPhoto.value = '';
+  if (dom.memberFormSummary) {
+    dom.memberFormSummary.textContent = 'Edit Team Member';
+  }
+  if (dom.addMemberBtn) {
+    dom.addMemberBtn.textContent = 'Save Changes';
+  }
+  if (dom.cancelEditMemberBtn) {
+    dom.cancelEditMemberBtn.hidden = false;
+  }
+  if (dom.memberFormBox) {
+    dom.memberFormBox.open = true;
+  }
+  notify(`Editing ${member.name}. Update fields and click Save Changes.`);
 }
 
 function visibleMembers() {
@@ -669,7 +719,10 @@ function renderLibrary() {
             <div class="member-role">${escapeHtml(member.title)}</div>
             <div class="member-dept">${escapeHtml(member.department)}</div>
           </div>
-          <button class="member-remove-btn" type="button" data-remove-member-id="${member.id}" aria-label="Remove ${escapeHtml(member.name)}">Remove</button>
+          <div class="member-actions">
+            <button class="member-edit-btn" type="button" data-edit-member-id="${member.id}" aria-label="Edit ${escapeHtml(member.name)}">Edit</button>
+            <button class="member-remove-btn" type="button" data-remove-member-id="${member.id}" aria-label="Remove ${escapeHtml(member.name)}">Remove</button>
+          </div>
         </div>
       `
     )
@@ -690,6 +743,17 @@ function renderLibrary() {
       const memberId = button.dataset.removeMemberId;
       if (memberId) {
         removeMember(memberId);
+      }
+    });
+  });
+
+  dom.libraryList.querySelectorAll('.member-edit-btn').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const memberId = button.dataset.editMemberId;
+      if (memberId) {
+        startMemberEdit(memberId);
       }
     });
   });
@@ -1486,30 +1550,46 @@ function addMemberFromForm() {
   const title = dom.newMemberTitle.value.trim();
   const department = dom.newMemberDepartment.value.trim();
   if (!name || !title || !department) {
-    notify('Add member needs name, position, and department.');
+    notify('Name, position, and department are required.');
     return;
   }
 
-  const nextId = `m${state.members.reduce((max, member) => {
-    const value = Number(String(member.id || '').replace(/^m/, ''));
-    return Number.isFinite(value) ? Math.max(max, value) : max;
-  }, 0) + 1}`;
+  const isEditing = Boolean(state.editingMemberId);
+  const editingMember = isEditing ? getMemberById(state.editingMemberId) : null;
+  if (isEditing && !editingMember) {
+    resetMemberForm();
+    notify('Selected member no longer exists.');
+    return;
+  }
+
+  const nextId = isEditing
+    ? state.editingMemberId
+    : `m${state.members.reduce((max, member) => {
+      const value = Number(String(member.id || '').replace(/^m/, ''));
+      return Number.isFinite(value) ? Math.max(max, value) : max;
+    }, 0) + 1}`;
   const file = dom.newMemberPhoto.files[0];
 
   const finish = (photo) => {
-    state.members.push({ id: nextId, name, title, department, photo });
-    dom.newMemberName.value = '';
-    dom.newMemberTitle.value = '';
-    dom.newMemberDepartment.value = '';
-    dom.newMemberPhoto.value = '';
+    if (isEditing) {
+      state.members = state.members.map((member) =>
+        member.id === nextId
+          ? { ...member, name, title, department, photo: photo || member.photo }
+          : member
+      );
+    } else {
+      state.members.push({ id: nextId, name, title, department, photo });
+    }
+    resetMemberForm();
     renderLibrary();
-    notify(`Added ${name} to library.`);
+    notify(isEditing ? `Updated ${name}.` : `Added ${name} to library.`);
+    render();
   };
 
   if (file) {
     fileToDataUrl(file).then(finish);
   } else {
-    finish(createAvatar(name, state.members.length + 1));
+    finish(isEditing ? null : createAvatar(name, state.members.length + 1));
   }
 }
 
@@ -1587,6 +1667,10 @@ function bindControlEvents() {
   dom.memberSearch.addEventListener('input', renderLibrary);
   dom.memberDepartmentFilter.addEventListener('change', renderLibrary);
   dom.addMemberBtn.addEventListener('click', addMemberFromForm);
+  dom.cancelEditMemberBtn.addEventListener('click', () => {
+    resetMemberForm();
+    notify('Edit canceled.');
+  });
   dom.removeDepartmentBtn.addEventListener('click', removeDepartment);
   dom.clearLibraryBtn.addEventListener('click', clearLibraryMembers);
 

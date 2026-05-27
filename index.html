@@ -41,8 +41,8 @@
 
       <div id="libraryList" class="library-list"></div>
 
-      <details class="add-member-box">
-        <summary>Add Team Member</summary>
+      <details id="memberFormBox" class="add-member-box">
+        <summary id="memberFormSummary">Add Team Member</summary>
         <div class="field-stack compact">
           <label for="newMemberName">Name</label>
           <input id="newMemberName" type="text" placeholder="Jane Smith" />
@@ -59,7 +59,10 @@
           <label for="newMemberPhoto">Photo</label>
           <input id="newMemberPhoto" type="file" accept="image/*" />
         </div>
-        <button id="addMemberBtn" class="btn btn-primary" type="button">Add Member</button>
+        <div class="grid-2">
+          <button id="addMemberBtn" class="btn btn-primary" type="button">Add Member</button>
+          <button id="cancelEditMemberBtn" class="btn" type="button" hidden>Cancel</button>
+        </div>
       </details>
     </aside>
 
