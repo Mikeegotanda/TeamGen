@@ -156,8 +156,6 @@ const dom = {
   slide: document.getElementById('slidePreview'),
   slideHeader: document.getElementById('slideHeader'),
   slideTitle: document.getElementById('slideTitle'),
-  slideType: document.getElementById('slideType'),
-  titleInput: document.getElementById('titleInput'),
   bgColorInput: document.getElementById('bgColorInput'),
   accentColorInput: document.getElementById('accentColorInput'),
   headingColorInput: document.getElementById('headingColorInput'),
@@ -717,8 +715,6 @@ function fileToDataUrl(file) {
 }
 
 function syncControls() {
-  dom.slideType.value = state.settings.type;
-  dom.titleInput.value = state.settings.title;
   dom.bgColorInput.value = state.settings.bgColor;
   dom.accentColorInput.value = state.settings.accentColor;
   dom.headingColorInput.value = state.settings.headingColor;
@@ -754,16 +750,6 @@ function bindControlEvents() {
   dom.memberSearch.addEventListener('input', renderLibrary);
   dom.memberDepartmentFilter.addEventListener('change', renderLibrary);
   dom.addMemberBtn.addEventListener('click', addMemberFromForm);
-
-  dom.slideType.addEventListener('change', () => {
-    applyPreset(dom.slideType.value);
-    notify(`Preset changed to ${dom.slideType.selectedOptions[0].text}.`);
-  });
-
-  dom.titleInput.addEventListener('input', () => {
-    state.settings.title = dom.titleInput.value;
-    render();
-  });
 
   dom.bgColorInput.addEventListener('input', () => {
     state.settings.bgColor = dom.bgColorInput.value;
