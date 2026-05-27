@@ -111,70 +111,74 @@
 
       <details class="control-dropdown">
         <summary>Layout</summary>
-        <div class="control-section">
-          <div class="grid-2">
+        <div class="control-section layout-section">
+          <div class="control-subsection">
+            <p class="subsection-title">Structure</p>
+            <div class="grid-2">
+              <div class="field-stack compact">
+                <label for="hierarchyDirectionInput">Hierarchy Direction</label>
+                <select id="hierarchyDirectionInput">
+                  <option value="top-down">Top Down</option>
+                  <option value="left-right">Left Right</option>
+                  <option value="bottom-up">Bottom Up</option>
+                </select>
+              </div>
+              <div class="field-stack compact">
+                <label for="nodeSpacingInput">Node Spacing</label>
+                <input id="nodeSpacingInput" type="range" min="60" max="160" />
+                <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
+                <input id="symmetryDynamicInput" type="range" min="0" max="100" />
+              </div>
+            </div>
             <div class="field-stack compact">
-              <label for="hierarchyDirectionInput">Hierarchy Direction</label>
-              <select id="hierarchyDirectionInput">
-                <option value="top-down">Top Down</option>
-                <option value="left-right">Left Right</option>
-                <option value="bottom-up">Bottom Up</option>
+              <label for="rowCountInput">Row Count</label>
+              <select id="rowCountInput">
+                <option value="auto">Auto</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
               </select>
             </div>
             <div class="field-stack compact">
-              <label for="nodeSpacingInput">Node Spacing</label>
-              <input id="nodeSpacingInput" type="range" min="60" max="160" />
-              <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
-              <input id="symmetryDynamicInput" type="range" min="0" max="100" />
+              <label for="layoutModeInput">Layout Mode</label>
+              <select id="layoutModeInput">
+                <option value="symmetrical">Symmetrical</option>
+                <option value="swimlane">Swimlane</option>
+              </select>
             </div>
           </div>
-          <div class="field-stack compact">
-            <label for="rowCountInput">Row Count</label>
-            <select id="rowCountInput">
-              <option value="auto">Auto</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-            </select>
-          </div>
-          <p class="section-title">Layout Engine</p>
-          <div class="field-stack compact">
-            <label for="layoutModeInput">Layout Mode</label>
-            <select id="layoutModeInput">
-              <option value="symmetrical">Symmetrical</option>
-              <option value="swimlane">Swimlane</option>
-            </select>
-          </div>
-          <p class="section-title">Depth & Atmosphere</p>
-          <p class="section-title">Background</p>
-          <div class="grid-2">
+
+          <div class="control-subsection">
+            <p class="subsection-title">Background</p>
+            <div class="grid-2">
+              <div class="field-stack compact">
+                <label for="bgColorInput">Background Color</label>
+                <input id="bgColorInput" type="color" />
+              </div>
+              <div class="field-stack compact">
+                <label for="bgGradientColor2Input">Gradient Color</label>
+                <input id="bgGradientColor2Input" type="color" />
+              </div>
+            </div>
+            <label class="check-wrap">
+              <input id="bgGradientEnabledInput" type="checkbox" />
+              Use Gradient Overlay
+            </label>
             <div class="field-stack compact">
-              <label for="bgColorInput">Background Color</label>
-              <input id="bgColorInput" type="color" />
+              <label for="backgroundImageInput">Background Image</label>
+              <input id="backgroundImageInput" type="file" accept="image/*" />
             </div>
             <div class="field-stack compact">
-              <label for="bgGradientColor2Input">Gradient Color</label>
-              <input id="bgGradientColor2Input" type="color" />
+              <label for="bgImageOpacityInput">Background Image Opacity</label>
+              <input id="bgImageOpacityInput" type="range" min="0" max="100" />
             </div>
+            <button id="removeBackgroundImageBtn" class="btn" type="button">Remove Background Image</button>
           </div>
-          <label class="check-wrap">
-            <input id="bgGradientEnabledInput" type="checkbox" />
-            Use Gradient Overlay
-          </label>
-          <div class="field-stack compact">
-            <label for="backgroundImageInput">Background Image</label>
-            <input id="backgroundImageInput" type="file" accept="image/*" />
-          </div>
-          <div class="field-stack compact">
-            <label for="bgImageOpacityInput">Background Image Opacity</label>
-            <input id="bgImageOpacityInput" type="range" min="0" max="100" />
-          </div>
-          <button id="removeBackgroundImageBtn" class="btn" type="button">Remove Background Image</button>
         </div>
       </details>
 

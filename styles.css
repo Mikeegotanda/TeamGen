@@ -103,6 +103,29 @@ body {
   gap: 10px;
 }
 
+.layout-section {
+  gap: 12px;
+}
+
+.control-subsection {
+  border: 1px solid rgba(155, 180, 206, 0.45);
+  border-radius: calc(var(--ui-radius) - 4px);
+  background: rgba(255, 255, 255, 0.34);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subsection-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #4d6684;
+}
+
 .control-section .grid-2,
 .control-section .field-stack {
   margin-top: 0;
