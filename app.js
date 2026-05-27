@@ -64,7 +64,22 @@ const PRESETS = {
     backgroundStyle: 'plain',
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
-    animationSpeed: 'normal'
+    animationSpeed: 'normal',
+    layoutMode: 'strict',
+    formalOrganic: 20,
+    symmetryDynamic: 18,
+    structureFreeform: 14,
+    shadowIntensity: 100,
+    blurStrength: 10,
+    backgroundDepth: 24,
+    floatingCards: true,
+    parallaxEnabled: false,
+    parallaxAmount: 8,
+    ambientGlow: false,
+    connectorVisualStyle: 'default',
+    connectorDecoration: 'none',
+    cardVisualType: 'standard',
+    avatarTreatment: 'default'
   },
   construction: {
     type: 'construction',
@@ -102,7 +117,22 @@ const PRESETS = {
     backgroundStyle: 'plain',
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
-    animationSpeed: 'normal'
+    animationSpeed: 'normal',
+    layoutMode: 'strict',
+    formalOrganic: 20,
+    symmetryDynamic: 18,
+    structureFreeform: 14,
+    shadowIntensity: 100,
+    blurStrength: 10,
+    backgroundDepth: 24,
+    floatingCards: true,
+    parallaxEnabled: false,
+    parallaxAmount: 8,
+    ambientGlow: false,
+    connectorVisualStyle: 'default',
+    connectorDecoration: 'none',
+    cardVisualType: 'standard',
+    avatarTreatment: 'default'
   },
   corporate: {
     type: 'corporate',
@@ -140,7 +170,22 @@ const PRESETS = {
     backgroundStyle: 'plain',
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
-    animationSpeed: 'normal'
+    animationSpeed: 'normal',
+    layoutMode: 'symmetrical',
+    formalOrganic: 24,
+    symmetryDynamic: 22,
+    structureFreeform: 18,
+    shadowIntensity: 112,
+    blurStrength: 10,
+    backgroundDepth: 28,
+    floatingCards: true,
+    parallaxEnabled: false,
+    parallaxAmount: 8,
+    ambientGlow: false,
+    connectorVisualStyle: 'rounded',
+    connectorDecoration: 'none',
+    cardVisualType: 'standard',
+    avatarTreatment: 'default'
   },
   introduction: {
     type: 'introduction',
@@ -178,7 +223,22 @@ const PRESETS = {
     backgroundStyle: 'plain',
     cardEntranceAnimation: 'tree-grow',
     connectorAnimation: 'draw',
-    animationSpeed: 'normal'
+    animationSpeed: 'normal',
+    layoutMode: 'editorial',
+    formalOrganic: 28,
+    symmetryDynamic: 32,
+    structureFreeform: 30,
+    shadowIntensity: 78,
+    blurStrength: 6,
+    backgroundDepth: 30,
+    floatingCards: true,
+    parallaxEnabled: false,
+    parallaxAmount: 8,
+    ambientGlow: false,
+    connectorVisualStyle: 'technical',
+    connectorDecoration: 'none',
+    cardVisualType: 'editorial',
+    avatarTreatment: 'default'
   }
 };
 
@@ -224,6 +284,21 @@ const dom = {
   cardEntranceAnimationInput: document.getElementById('cardEntranceAnimationInput'),
   connectorAnimationInput: document.getElementById('connectorAnimationInput'),
   animationSpeedInput: document.getElementById('animationSpeedInput'),
+  layoutModeInput: document.getElementById('layoutModeInput'),
+  formalOrganicInput: document.getElementById('formalOrganicInput'),
+  symmetryDynamicInput: document.getElementById('symmetryDynamicInput'),
+  structureFreeformInput: document.getElementById('structureFreeformInput'),
+  shadowIntensityInput: document.getElementById('shadowIntensityInput'),
+  blurStrengthInput: document.getElementById('blurStrengthInput'),
+  backgroundDepthInput: document.getElementById('backgroundDepthInput'),
+  floatingCardsInput: document.getElementById('floatingCardsInput'),
+  parallaxEnabledInput: document.getElementById('parallaxEnabledInput'),
+  parallaxAmountInput: document.getElementById('parallaxAmountInput'),
+  ambientGlowInput: document.getElementById('ambientGlowInput'),
+  connectorVisualStyleInput: document.getElementById('connectorVisualStyleInput'),
+  connectorDecorationInput: document.getElementById('connectorDecorationInput'),
+  cardVisualTypeInput: document.getElementById('cardVisualTypeInput'),
+  avatarTreatmentInput: document.getElementById('avatarTreatmentInput'),
   bgColorInput: document.getElementById('bgColorInput'),
   accentColorInput: document.getElementById('accentColorInput'),
   headingColorInput: document.getElementById('headingColorInput'),
@@ -273,6 +348,23 @@ function slug(text) {
 
 function notify(message) {
   dom.statusText.textContent = message;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function hashToUnit(value) {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return ((hash >>> 0) % 1000) / 1000;
 }
 
 function getMemberById(memberId) {
@@ -547,7 +639,8 @@ function escapeHtml(value) {
 
 function cardTemplate(member, xCenter) {
   const isRight = xCenter > 640;
-  const showAvatar = state.settings.avatarStyle !== 'hidden';
+  const avatarTreatment = state.settings.avatarTreatment || 'default';
+  const showAvatar = state.settings.avatarStyle !== 'hidden' && avatarTreatment !== 'hidden';
   const layout = state.settings.cardLayout;
   const compact = layout === 'compact';
 
@@ -557,8 +650,29 @@ function cardTemplate(member, xCenter) {
     rounded: '12px',
     hidden: '0'
   };
-  const avatarRadius = avatarRadiusMap[state.settings.avatarStyle] || '12px';
+  let avatarRadius = avatarRadiusMap[state.settings.avatarStyle] || '12px';
+  if (avatarTreatment === 'circle') {
+    avatarRadius = '50%';
+  } else if (avatarTreatment === 'square') {
+    avatarRadius = '3px';
+  } else if (avatarTreatment === 'rounded') {
+    avatarRadius = '12px';
+  }
   const avatarSize = compact ? 56 : 78;
+  const avatarFilter =
+    avatarTreatment === 'monochrome'
+      ? 'grayscale(1) contrast(1.05)'
+      : avatarTreatment === 'duotone'
+        ? 'grayscale(1) sepia(0.75) hue-rotate(185deg) saturate(1.55)'
+        : 'none';
+  const avatarExtraStyle = [
+    `border-radius:${avatarRadius}`,
+    avatarFilter !== 'none' ? `filter:${avatarFilter}` : '',
+    avatarTreatment === 'cutout' ? 'mix-blend-mode:multiply' : '',
+    avatarTreatment === 'floating' ? 'box-shadow:0 10px 22px rgba(12,22,34,0.3);transform:translateY(-3px)' : ''
+  ]
+    .filter(Boolean)
+    .join(';');
 
   const showRole = state.settings.infoVisibility !== 'name-only';
   const showDept = state.settings.infoVisibility === 'name-role-dept';
@@ -571,11 +685,20 @@ function cardTemplate(member, xCenter) {
     </div>
   `;
 
+  if (avatarTreatment === 'full-bleed' && showAvatar) {
+    return `
+      <div class="card-main full-bleed" style="position:relative;display:block;">
+        <img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="${avatarExtraStyle}" />
+        ${copyBlock}
+      </div>
+    `;
+  }
+
   if (layout === 'avatar-top') {
     return `
       <div class="card-accent"></div>
       <div class="card-main" style="grid-template-columns:1fr;justify-items:center;gap:${compact ? '6px' : '10px'};padding:${compact ? '10px' : '12px'};">
-        ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${avatarSize}px;height:${avatarSize}px;border-radius:${avatarRadius};" />` : ''}
+        ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${avatarSize}px;height:${avatarSize}px;${avatarExtraStyle};" />` : ''}
         ${copyBlock}
       </div>
     `;
@@ -584,7 +707,7 @@ function cardTemplate(member, xCenter) {
   if (state.settings.cardStyle === 'pill') {
     return `
       <div class="card-main" style="grid-template-columns:${showAvatar ? (isRight ? `${compact ? '1fr 64px' : '1fr 88px'}` : `${compact ? '64px 1fr' : '88px 1fr'}`) : '1fr'};padding:${isRight ? '10px 12px 10px 14px' : '10px 14px 10px 12px'};gap:${compact ? '10px' : '14px'};">
-        ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${compact ? 64 : 86}px;height:${compact ? 64 : 86}px;border-radius:${state.settings.avatarStyle === 'circle' ? '50%' : avatarRadius};order:${isRight ? '2' : '0'};border:3px solid #f2dce0;" />` : ''}
+        ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${compact ? 64 : 86}px;height:${compact ? 64 : 86}px;${avatarExtraStyle};order:${isRight ? '2' : '0'};border:3px solid #f2dce0;" />` : ''}
         ${copyBlock}
       </div>
     `;
@@ -593,7 +716,7 @@ function cardTemplate(member, xCenter) {
   return `
     <div class="card-accent"></div>
     <div class="card-main" style="grid-template-columns:${showAvatar ? `${compact ? 58 : 78}px 1fr` : '1fr'};gap:${compact ? '10px' : '14px'};padding:${compact ? '10px' : '12px'};">
-      ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${compact ? 58 : 78}px;height:${compact ? 58 : 64}px;border-radius:${avatarRadius};" />` : ''}
+      ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${compact ? 58 : 78}px;height:${compact ? 58 : 64}px;${avatarExtraStyle};" />` : ''}
       ${copyBlock}
     </div>
   `;
@@ -645,6 +768,88 @@ function rowLayouts() {
     });
   });
 
+  const mode = state.settings.layoutMode || 'strict';
+  const organicAmount = clamp(Number(state.settings.formalOrganic || 0) / 100, 0, 1);
+  const dynamicAmount = clamp(Number(state.settings.symmetryDynamic || 0) / 100, 0, 1);
+  const freeformAmount = clamp(Number(state.settings.structureFreeform || 0) / 100, 0, 1);
+  const centerX = (metrics.left + metrics.right) / 2;
+  const centerY = (metrics.top + metrics.bottom) / 2;
+  const rowCount = Math.max(1, state.rows.length);
+
+  Object.entries(layouts).forEach(([nodeId, layout]) => {
+    const rowProgress = rowCount <= 1 ? 0 : layout.rowIndex / (rowCount - 1);
+    if (mode === 'editorial') {
+      const stagger = layout.rowIndex % 2 === 0 ? -70 : 70;
+      layout.x += stagger * dynamicAmount * 0.9;
+      layout.xCenter += stagger * dynamicAmount * 0.9;
+    } else if (mode === 'clustered') {
+      const clusterSlots = [0.2, 0.5, 0.8];
+      const slot = clusterSlots[(layout.columnIndex || 0) % clusterSlots.length];
+      const targetX = lerp(metrics.left, metrics.right, slot);
+      layout.xCenter = lerp(layout.xCenter, targetX, 0.48);
+      layout.x = layout.xCenter - layout.width / 2;
+    } else if (mode === 'masonry') {
+      const lift = (layout.columnIndex % 2 === 0 ? -1 : 1) * (10 + dynamicAmount * 18);
+      layout.y += lift;
+      layout.yCenter += lift;
+    } else if (mode === 'organic' || mode === 'physics') {
+      const jitterX = (hashToUnit(`${nodeId}-x`) - 0.5) * 90 * organicAmount;
+      const jitterY = (hashToUnit(`${nodeId}-y`) - 0.5) * 70 * (organicAmount * 0.85 + freeformAmount * 0.2);
+      layout.x += jitterX;
+      layout.y += jitterY;
+      layout.xCenter += jitterX;
+      layout.yCenter += jitterY;
+    } else if (mode === 'radial') {
+      const row = layout.rowIndex;
+      const rowSize = Math.max(1, state.rows[row]?.length || 1);
+      const start = -Math.PI / 2;
+      const sweep = Math.PI * 1.7;
+      const angle = rowSize <= 1 ? start : start + (sweep * layout.columnIndex) / Math.max(1, rowSize - 1);
+      const ringRadius = 90 + row * 118;
+      layout.xCenter = centerX + Math.cos(angle) * ringRadius;
+      layout.yCenter = centerY + Math.sin(angle) * (ringRadius * 0.66);
+      layout.x = layout.xCenter - layout.width / 2;
+      layout.y = layout.yCenter - layout.height / 2;
+    } else if (mode === 'hexagonal') {
+      const row = layout.rowIndex;
+      const offset = row % 2 === 0 ? -44 : 44;
+      layout.x += offset;
+      layout.xCenter += offset;
+      layout.y += (layout.columnIndex % 2 === 0 ? -10 : 10) * (0.35 + dynamicAmount * 0.65);
+      layout.yCenter = layout.y + layout.height / 2;
+    } else if (mode === 'swimlane') {
+      const laneCount = Math.max(1, state.rows.length);
+      const laneHeight = (metrics.bottom - metrics.top) / laneCount;
+      const laneY = metrics.top + laneHeight * layout.rowIndex + laneHeight / 2;
+      layout.yCenter = laneY;
+      layout.y = laneY - layout.height / 2;
+      const margin = 80 + dynamicAmount * 40;
+      if ((layout.columnIndex || 0) === 0) {
+        layout.xCenter = metrics.left + margin;
+      } else if ((state.rows[layout.rowIndex]?.length || 1) - 1 === layout.columnIndex) {
+        layout.xCenter = metrics.right - margin;
+      }
+      layout.x = layout.xCenter - layout.width / 2;
+    }
+
+    if (mode === 'symmetrical') {
+      const distFromCenter = layout.xCenter - centerX;
+      layout.xCenter = centerX + distFromCenter * (1 - dynamicAmount * 0.22);
+      layout.x = layout.xCenter - layout.width / 2;
+    }
+
+    const freeShift = (hashToUnit(`${nodeId}-free`) - 0.5) * 34 * freeformAmount * 0.6;
+    if (mode !== 'strict' && mode !== 'symmetrical') {
+      layout.x += freeShift;
+      layout.xCenter += freeShift;
+    }
+
+    layout.x = clamp(layout.x, 8, (dom.cardLayer.clientWidth || 1280) - layout.width - 8);
+    layout.y = clamp(layout.y, 8, (dom.cardLayer.clientHeight || 560) - layout.height - 8);
+    layout.xCenter = layout.x + layout.width / 2;
+    layout.yCenter = layout.y + layout.height / 2;
+  });
+
   return layouts;
 }
 
@@ -662,16 +867,63 @@ function getCardRadiusFromShape() {
 }
 
 function getCardShadowFromElevation() {
+  const intensity = clamp((Number(state.settings.shadowIntensity) || 100) / 100, 0, 2.2);
+  const scale = (value) => Math.round(value * intensity);
+
   if (state.settings.cardElevation === 'flat') {
     return 'none';
   }
   if (state.settings.cardElevation === 'floating') {
-    return '0 18px 34px rgba(18, 32, 50, 0.24)';
+    return `0 ${scale(18)}px ${scale(34)}px rgba(18, 32, 50, ${0.24 * Math.max(0.3, intensity)})`;
   }
   if (state.settings.cardElevation === 'glass') {
-    return '0 12px 24px rgba(18, 32, 50, 0.2), inset 0 1px 0 rgba(255,255,255,0.72)';
+    return `0 ${scale(12)}px ${scale(24)}px rgba(18, 32, 50, ${0.2 * Math.max(0.3, intensity)}), inset 0 1px 0 rgba(255,255,255,0.72)`;
   }
-  return state.settings.showShadow ? 'var(--shadow-soft)' : 'none';
+  return state.settings.showShadow
+    ? `0 ${scale(9)}px ${scale(20)}px rgba(23, 36, 53, ${0.09 * Math.max(0.3, intensity)})`
+    : 'none';
+}
+
+function cardVisualStyles() {
+  const type = state.settings.cardVisualType || 'standard';
+  const accent = state.settings.accentColor;
+  const baseBg = state.settings.cardBg;
+  const blur = clamp(Number(state.settings.blurStrength || 10), 0, 24);
+
+  if (type === 'glass') {
+    return { background: 'rgba(255,255,255,0.55)', backdrop: `blur(${blur}px) saturate(132%)`, border: `1px solid rgba(255,255,255,0.7)` };
+  }
+  if (type === 'elevated') {
+    return { background: baseBg, extraClass: 'card-visual-elevated' };
+  }
+  if (type === 'minimal') {
+    return { background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(209,220,232,0.6)', accentHeight: 3 };
+  }
+  if (type === 'outline') {
+    return { background: 'rgba(255,255,255,0.08)', border: `2px solid ${accent}` };
+  }
+  if (type === 'filled') {
+    return { background: accent, text: '#ffffff', subText: 'rgba(255,255,255,0.9)', accentHeight: 0 };
+  }
+  if (type === 'split') {
+    return { background: `linear-gradient(90deg, ${accent} 0%, ${accent} 32%, ${baseBg} 32%, ${baseBg} 100%)` };
+  }
+  if (type === 'stack') {
+    return { background: baseBg, extraClass: 'card-visual-stack' };
+  }
+  if (type === 'frosted') {
+    return { background: 'rgba(248, 252, 255, 0.46)', backdrop: `blur(${Math.max(8, blur)}px) saturate(160%)`, border: '1px solid rgba(255,255,255,0.8)' };
+  }
+  if (type === 'gradient') {
+    return { background: `linear-gradient(130deg, ${accent}18, ${baseBg} 38%, ${accent}2E)` };
+  }
+  if (type === 'blueprint') {
+    return { background: 'linear-gradient(#e2efff,#e2efff), repeating-linear-gradient(0deg, rgba(30,92,167,0.12), rgba(30,92,167,0.12) 1px, transparent 1px, transparent 12px)', border: '1px solid rgba(50,102,164,0.34)' };
+  }
+  if (type === 'editorial') {
+    return { background: baseBg, border: '2px solid #202937', accentHeight: 2 };
+  }
+  return { background: baseBg };
 }
 
 function animationTimings() {
@@ -743,8 +995,10 @@ function renderCards(layouts) {
     : '0px solid transparent';
   const cardShadow = getCardShadowFromElevation();
   const cardRadius = getCardRadiusFromShape();
+  const blurStrength = clamp(Number(state.settings.blurStrength || 10), 0, 24);
   const timings = animationTimings();
   const entranceClass = cardAnimationClass();
+  const floatingClass = state.settings.floatingCards ? ' float-on-hover' : '';
 
   dom.cardLayer.innerHTML = Object.entries(layouts)
     .map(([nodeId, layout]) => {
@@ -755,6 +1009,7 @@ function renderCards(layouts) {
       }
 
       const selectedClass = state.selectedCardId === nodeId ? 'selected' : '';
+      const visual = cardVisualStyles();
       const animationClass = entranceClass ? ` ${entranceClass}` : '';
       const animationDelay = cardAnimationDelay(layout, timings);
       const style = [
@@ -762,17 +1017,22 @@ function renderCards(layouts) {
         `top:${layout.y}px`,
         `width:${layout.width}px`,
         `height:${layout.height}px`,
-        `border:${cardBorder}`,
+        `border:${visual.border || cardBorder}`,
         `box-shadow:${cardShadow}`,
         `border-radius:${cardRadius}px`,
         `--enter-duration:${timings.cardDuration}ms`,
         `--enter-delay:${animationDelay}ms`,
-        state.settings.cardElevation === 'glass' ? 'backdrop-filter: blur(10px) saturate(125%)' : '',
-        state.settings.cardElevation === 'glass' ? 'background: rgba(255,255,255,0.58)' : ''
+        `background:${visual.background || state.settings.cardBg}`,
+        visual.backdrop ? `backdrop-filter:${visual.backdrop}` : '',
+        state.settings.cardElevation === 'glass' && !visual.backdrop ? `backdrop-filter: blur(${blurStrength}px) saturate(125%)` : '',
+        state.settings.cardElevation === 'glass' && !visual.background ? 'background: rgba(255,255,255,0.58)' : '',
+        visual.accentHeight !== undefined ? `--card-accent-h:${visual.accentHeight}px` : '',
+        `--card-name-color:${visual.text || state.settings.cardTextColor}`,
+        `--card-role-color:${visual.subText || state.settings.cardSubColor}`
       ].join(';');
 
       return `
-        <article class="canvas-card ${selectedClass}${animationClass}" data-node-id="${nodeId}" style="${style}">
+        <article class="canvas-card ${selectedClass}${animationClass}${floatingClass}${visual.extraClass ? ` ${visual.extraClass}` : ''}" data-node-id="${nodeId}" data-card-visual="${state.settings.cardVisualType || 'standard'}" style="${style}">
           ${cardTemplate(member, layout.xCenter)}
         </article>
       `;
@@ -792,18 +1052,29 @@ function renderCards(layouts) {
   });
 
   dom.cardLayer.querySelectorAll('.card-name').forEach((element) => {
+    const visual = element.closest('.canvas-card')?.dataset.cardVisual;
+    const color = visual === 'filled' ? '#ffffff' : state.settings.cardTextColor;
     element.style.fontSize = `${state.settings.nameSize}px`;
     element.style.fontWeight = state.settings.nameBold ? '800' : '600';
-    element.style.color = state.settings.cardTextColor;
+    element.style.color = color;
   });
 
   dom.cardLayer.querySelectorAll('.card-role').forEach((element) => {
+    const visual = element.closest('.canvas-card')?.dataset.cardVisual;
+    const color = visual === 'filled' ? 'rgba(255,255,255,0.9)' : state.settings.cardSubColor;
     element.style.fontSize = `${state.settings.roleSize}px`;
-    element.style.color = state.settings.cardSubColor;
+    element.style.color = color;
   });
 
   dom.cardLayer.querySelectorAll('.card-accent').forEach((element) => {
+    const visual = element.closest('.canvas-card')?.dataset.cardVisual;
+    if (visual === 'filled' || visual === 'full-bleed') {
+      element.style.display = 'none';
+      return;
+    }
+    element.style.display = 'block';
     element.style.background = state.settings.accentColor;
+    element.style.height = `var(--card-accent-h, 6px)`;
   });
 }
 
@@ -873,7 +1144,8 @@ function getConnectorAnchors(fromLayout, toLayout) {
 
 function pathBetweenCards(fromLayout, toLayout) {
   const { fromX, fromY, toX, toY } = getConnectorAnchors(fromLayout, toLayout);
-  const style = state.settings.connectorStyle;
+  const profile = connectorVisualProfile();
+  const style = profile.routeHint || state.settings.connectorStyle;
 
   if (style === 'straight') {
     return `M ${fromX} ${fromY} L ${toX} ${toY}`;
@@ -882,9 +1154,17 @@ function pathBetweenCards(fromLayout, toLayout) {
   if (style === 'curved') {
     if (state.settings.hierarchyDirection === 'left-right') {
       const midX = fromX + (toX - fromX) * 0.5;
+      if ((state.settings.connectorVisualStyle || '') === 'hand-drawn') {
+        const bend = (hashToUnit(`${fromX}-${toX}-${fromY}`) - 0.5) * 40;
+        return `M ${fromX} ${fromY} C ${midX + bend} ${fromY + bend}, ${midX - bend} ${toY - bend}, ${toX} ${toY}`;
+      }
       return `M ${fromX} ${fromY} C ${midX} ${fromY}, ${midX} ${toY}, ${toX} ${toY}`;
     }
     const midY = fromY + (toY - fromY) * 0.5;
+    if ((state.settings.connectorVisualStyle || '') === 'hand-drawn') {
+      const bend = (hashToUnit(`${fromY}-${toY}-${toX}`) - 0.5) * 40;
+      return `M ${fromX} ${fromY} C ${fromX + bend} ${midY - bend}, ${toX - bend} ${midY + bend}, ${toX} ${toY}`;
+    }
     return `M ${fromX} ${fromY} C ${fromX} ${midY}, ${toX} ${midY}, ${toX} ${toY}`;
   }
 
@@ -930,22 +1210,89 @@ function autoLinkPairs(layouts) {
   return links;
 }
 
+function connectorVisualProfile() {
+  const visual = state.settings.connectorVisualStyle || 'default';
+  if (visual === 'sharp') {
+    return { linecap: 'square', linejoin: 'miter' };
+  }
+  if (visual === 'rounded') {
+    return { linecap: 'round', linejoin: 'round' };
+  }
+  if (visual === 'organic') {
+    return { linecap: 'round', linejoin: 'round', routeHint: 'curved' };
+  }
+  if (visual === 'technical') {
+    return { linecap: 'butt', linejoin: 'miter', dash: '6 4' };
+  }
+  if (visual === 'hand-drawn') {
+    return { linecap: 'round', linejoin: 'round', dash: '3 2' };
+  }
+  if (visual === 'double') {
+    return { linecap: 'round', linejoin: 'round', double: true };
+  }
+  if (visual === 'dotted') {
+    return { linecap: 'round', linejoin: 'round', dash: '1 10' };
+  }
+  if (visual === 'segmented') {
+    return { linecap: 'round', linejoin: 'round', dash: '15 8' };
+  }
+  if (visual === 'tapered') {
+    return { linecap: 'round', linejoin: 'round', tapered: true };
+  }
+  return { linecap: 'round', linejoin: 'round' };
+}
+
 function renderConnectors(layouts) {
   const paths = [];
+  const decorations = [];
   const weightMap = { thin: 2, medium: 4, bold: 7 };
   const strokeWidth = weightMap[state.settings.connectorWeight] || 4;
   const timings = animationTimings();
   const connectorClass = connectorAnimationClass();
-  const baseDash = state.settings.connectorType === 'dashed' ? '9 7' : '';
+  const visual = connectorVisualProfile();
+  const decoration = state.settings.connectorDecoration || 'none';
+  const baseDash =
+    state.settings.connectorType === 'dashed'
+      ? '9 7'
+      : visual.dash || '';
   let pathIndex = 0;
 
-  function pushPath(d, stroke, width, opacity = 0.8) {
+  function pushPath(fromLayout, toLayout, stroke, width, opacity = 0.8) {
+    const d = pathBetweenCards(fromLayout, toLayout);
+    const anchors = getConnectorAnchors(fromLayout, toLayout);
+    const midX = (anchors.fromX + anchors.toX) / 2;
+    const midY = (anchors.fromY + anchors.toY) / 2;
     const delay = pathIndex * Math.round(timings.stepDelay * 0.75);
     pathIndex += 1;
     const dashValue = connectorClass === 'anim-connector-draw' ? '' : connectorClass === 'anim-connector-flow' ? '14 10' : baseDash;
+    const markerEnd = decoration === 'arrowheads' || visual.tapered ? 'url(#connector-arrow)' : '';
+    const linecap = visual.linecap || 'round';
+    const linejoin = visual.linejoin || 'round';
+
+    if (visual.double) {
+      paths.push(
+        `<path d="${d}" class="connector-line ${connectorClass}" fill="none" stroke="${stroke}" stroke-width="${width + 3}" opacity="${opacity * 0.25}" ${dashValue ? `stroke-dasharray="${dashValue}"` : ''} stroke-linecap="${linecap}" stroke-linejoin="${linejoin}" style="--connector-duration:${timings.connectorDuration}ms;--connector-delay:${delay}ms;"></path>`
+      );
+    }
+
     paths.push(
-      `<path d="${d}" class="connector-line ${connectorClass}" fill="none" stroke="${stroke}" stroke-width="${width}" opacity="${opacity}" ${dashValue ? `stroke-dasharray="${dashValue}"` : ''} style="--connector-duration:${timings.connectorDuration}ms;--connector-delay:${delay}ms;"></path>`
+      `<path d="${d}" class="connector-line ${connectorClass}" fill="none" stroke="${stroke}" stroke-width="${width}" opacity="${opacity}" ${dashValue ? `stroke-dasharray="${dashValue}"` : ''} ${markerEnd ? `marker-end="${markerEnd}"` : ''} stroke-linecap="${linecap}" stroke-linejoin="${linejoin}" style="--connector-duration:${timings.connectorDuration}ms;--connector-delay:${delay}ms;"></path>`
     );
+
+    if (decoration === 'dots') {
+      decorations.push(`<circle cx="${anchors.toX}" cy="${anchors.toY}" r="${Math.max(2, width - 0.5)}" fill="${stroke}" opacity="0.95"></circle>`);
+    }
+    if (decoration === 'junctions') {
+      decorations.push(`<circle cx="${midX}" cy="${midY}" r="${Math.max(3, width)}" fill="${stroke}" opacity="0.88"></circle>`);
+    }
+    if (decoration === 'labels') {
+      decorations.push(`<text x="${midX + 6}" y="${midY - 6}" class="connector-label">Link</text>`);
+    }
+    if (decoration === 'status') {
+      const palette = ['#26b36a', '#d39c2f', '#dc4d4d'];
+      const color = palette[Math.floor(hashToUnit(`${midX}-${midY}`) * palette.length) % palette.length];
+      decorations.push(`<circle cx="${midX}" cy="${midY}" r="${Math.max(3, width)}" fill="${color}" stroke="#ffffff" stroke-width="1"></circle>`);
+    }
   }
 
   if (state.autoConnect) {
@@ -953,7 +1300,7 @@ function renderConnectors(layouts) {
       const fromLayout = layouts[link.from];
       const toLayout = layouts[link.to];
       if (fromLayout && toLayout) {
-        pushPath(pathBetweenCards(fromLayout, toLayout), '#8d949f', strokeWidth, 0.8);
+        pushPath(fromLayout, toLayout, '#8d949f', strokeWidth, 0.8);
       }
     });
   }
@@ -964,10 +1311,11 @@ function renderConnectors(layouts) {
     if (!fromLayout || !toLayout) {
       return;
     }
-    pushPath(pathBetweenCards(fromLayout, toLayout), state.settings.accentColor, Math.max(strokeWidth + 1, 4), 1);
+    pushPath(fromLayout, toLayout, state.settings.accentColor, Math.max(strokeWidth + 1, 4), 1);
   });
 
-  dom.connectorLayer.innerHTML = paths.join('');
+  const defs = `<defs><marker id="connector-arrow" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,4 L0,8 z" fill="${state.settings.accentColor}"></path></marker></defs>`;
+  dom.connectorLayer.innerHTML = `${defs}${paths.join('')}${decorations.join('')}`;
 
   if (connectorClass === 'anim-connector-draw') {
     dom.connectorLayer.querySelectorAll('.connector-line').forEach((path) => {
@@ -991,29 +1339,34 @@ function updateHeaderHeight() {
 
 function slideBackgroundFromStyle() {
   const bg = state.settings.bgColor;
+  const depth = clamp(Number(state.settings.backgroundDepth || 0) / 100, 0, 1);
+  const depthOverlay = `radial-gradient(1000px 480px at 50% -20%, rgba(255,255,255,${0.28 + depth * 0.24}), rgba(255,255,255,0))`;
   if (state.settings.backgroundStyle === 'gradient') {
-    return `linear-gradient(155deg, ${bg} 0%, #dfe8f3 100%)`;
+    return `${depthOverlay}, linear-gradient(155deg, ${bg} 0%, #dfe8f3 100%)`;
   }
   if (state.settings.backgroundStyle === 'grid') {
-    return `linear-gradient(${bg}, ${bg}), linear-gradient(rgba(65,87,115,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(65,87,115,0.14) 1px, transparent 1px)`;
+    return `${depthOverlay}, linear-gradient(${bg}, ${bg}), linear-gradient(rgba(65,87,115,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(65,87,115,0.14) 1px, transparent 1px)`;
   }
   if (state.settings.backgroundStyle === 'blueprint') {
-    return `linear-gradient(#d7e6f8, #d7e6f8), linear-gradient(rgba(34,78,122,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(34,78,122,0.18) 1px, transparent 1px)`;
+    return `${depthOverlay}, linear-gradient(#d7e6f8, #d7e6f8), linear-gradient(rgba(34,78,122,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(34,78,122,0.18) 1px, transparent 1px)`;
   }
   if (state.settings.backgroundStyle === 'dots') {
-    return `radial-gradient(circle at 1px 1px, rgba(68,90,120,0.3) 1px, transparent 0), linear-gradient(${bg}, ${bg})`;
+    return `${depthOverlay}, radial-gradient(circle at 1px 1px, rgba(68,90,120,0.3) 1px, transparent 0), linear-gradient(${bg}, ${bg})`;
   }
-  return bg;
+  return `${depthOverlay}, linear-gradient(${bg}, ${bg})`;
 }
 
 function backgroundSizingFromStyle() {
+  if (state.settings.backgroundStyle === 'plain') {
+    return 'auto, cover';
+  }
   if (state.settings.backgroundStyle === 'grid' || state.settings.backgroundStyle === 'blueprint') {
-    return 'auto, 34px 34px, 34px 34px';
+    return 'auto, auto, 34px 34px, 34px 34px';
   }
   if (state.settings.backgroundStyle === 'dots') {
-    return '16px 16px, auto';
+    return 'auto, 16px 16px, auto';
   }
-  return 'cover';
+  return 'auto, cover';
 }
 
 function applyStyleToSlide() {
@@ -1024,6 +1377,11 @@ function applyStyleToSlide() {
   dom.slide.style.setProperty('--card-title', state.settings.cardTextColor);
   dom.slide.style.setProperty('--card-subtitle', state.settings.cardSubColor);
   dom.slide.style.setProperty('--card-outline', state.settings.outlineColor);
+  const blurStrength = clamp(Number(state.settings.blurStrength || 10), 0, 24);
+  const shadowIntensity = clamp((Number(state.settings.shadowIntensity) || 100) / 100, 0, 2.2);
+  const glow = state.settings.ambientGlow ? `0 0 ${Math.round(28 + shadowIntensity * 30)}px ${state.settings.accentColor}30` : '';
+  dom.slide.style.boxShadow = `0 ${Math.round(18 * shadowIntensity)}px ${Math.round(34 * shadowIntensity)}px rgba(23, 33, 45, ${0.22 * Math.max(0.4, shadowIntensity)})${glow ? `, ${glow}` : ''}`;
+  dom.slide.style.backdropFilter = `blur(${Math.round(blurStrength * 0.12)}px)`;
 
   if (state.settings.bgImage) {
     dom.slide.style.background = `linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url(${state.settings.bgImage}) center/cover no-repeat`;
@@ -1103,6 +1461,21 @@ function syncControls() {
   dom.cardEntranceAnimationInput.value = state.settings.cardEntranceAnimation || 'none';
   dom.connectorAnimationInput.value = state.settings.connectorAnimation || 'none';
   dom.animationSpeedInput.value = state.settings.animationSpeed || 'normal';
+  dom.layoutModeInput.value = state.settings.layoutMode || 'strict';
+  dom.formalOrganicInput.value = String(state.settings.formalOrganic ?? 20);
+  dom.symmetryDynamicInput.value = String(state.settings.symmetryDynamic ?? 18);
+  dom.structureFreeformInput.value = String(state.settings.structureFreeform ?? 14);
+  dom.shadowIntensityInput.value = String(state.settings.shadowIntensity ?? 100);
+  dom.blurStrengthInput.value = String(state.settings.blurStrength ?? 10);
+  dom.backgroundDepthInput.value = String(state.settings.backgroundDepth ?? 24);
+  dom.floatingCardsInput.checked = state.settings.floatingCards !== false;
+  dom.parallaxEnabledInput.checked = state.settings.parallaxEnabled === true;
+  dom.parallaxAmountInput.value = String(state.settings.parallaxAmount ?? 8);
+  dom.ambientGlowInput.checked = state.settings.ambientGlow === true;
+  dom.connectorVisualStyleInput.value = state.settings.connectorVisualStyle || 'default';
+  dom.connectorDecorationInput.value = state.settings.connectorDecoration || 'none';
+  dom.cardVisualTypeInput.value = state.settings.cardVisualType || 'standard';
+  dom.avatarTreatmentInput.value = state.settings.avatarTreatment || 'default';
   dom.bgColorInput.value = state.settings.bgColor;
   dom.accentColorInput.value = state.settings.accentColor;
   dom.headingColorInput.value = state.settings.headingColor;
@@ -1182,6 +1555,90 @@ function bindControlEvents() {
 
   dom.animationSpeedInput.addEventListener('change', () => {
     state.settings.animationSpeed = dom.animationSpeedInput.value;
+    render();
+  });
+
+  dom.layoutModeInput.addEventListener('change', () => {
+    state.settings.layoutMode = dom.layoutModeInput.value;
+    render();
+  });
+
+  dom.formalOrganicInput.addEventListener('input', () => {
+    state.settings.formalOrganic = Number(dom.formalOrganicInput.value);
+    render();
+  });
+
+  dom.symmetryDynamicInput.addEventListener('input', () => {
+    state.settings.symmetryDynamic = Number(dom.symmetryDynamicInput.value);
+    render();
+  });
+
+  dom.structureFreeformInput.addEventListener('input', () => {
+    state.settings.structureFreeform = Number(dom.structureFreeformInput.value);
+    render();
+  });
+
+  dom.shadowIntensityInput.addEventListener('input', () => {
+    state.settings.shadowIntensity = Number(dom.shadowIntensityInput.value);
+    render();
+  });
+
+  dom.blurStrengthInput.addEventListener('input', () => {
+    state.settings.blurStrength = Number(dom.blurStrengthInput.value);
+    render();
+  });
+
+  dom.backgroundDepthInput.addEventListener('input', () => {
+    state.settings.backgroundDepth = Number(dom.backgroundDepthInput.value);
+    render();
+  });
+
+  dom.floatingCardsInput.addEventListener('change', () => {
+    state.settings.floatingCards = dom.floatingCardsInput.checked;
+    render();
+  });
+
+  dom.parallaxEnabledInput.addEventListener('change', () => {
+    state.settings.parallaxEnabled = dom.parallaxEnabledInput.checked;
+    if (!state.settings.parallaxEnabled) {
+      dom.cardLayer.style.transform = 'translate3d(0, 0, 0)';
+      dom.connectorLayer.style.transform = 'translate3d(0, 0, 0)';
+    }
+    render();
+  });
+
+  dom.parallaxAmountInput.addEventListener('input', () => {
+    state.settings.parallaxAmount = Number(dom.parallaxAmountInput.value);
+    render();
+  });
+
+  dom.ambientGlowInput.addEventListener('change', () => {
+    state.settings.ambientGlow = dom.ambientGlowInput.checked;
+    render();
+  });
+
+  dom.connectorVisualStyleInput.addEventListener('change', () => {
+    state.settings.connectorVisualStyle = dom.connectorVisualStyleInput.value;
+    render();
+  });
+
+  dom.connectorDecorationInput.addEventListener('change', () => {
+    state.settings.connectorDecoration = dom.connectorDecorationInput.value;
+    render();
+  });
+
+  dom.cardVisualTypeInput.addEventListener('change', () => {
+    state.settings.cardVisualType = dom.cardVisualTypeInput.value;
+    render();
+  });
+
+  dom.avatarTreatmentInput.addEventListener('change', () => {
+    state.settings.avatarTreatment = dom.avatarTreatmentInput.value;
+    if (state.settings.avatarTreatment === 'hidden') {
+      state.settings.avatarStyle = 'hidden';
+    } else if (state.settings.avatarStyle === 'hidden') {
+      state.settings.avatarStyle = 'rounded';
+    }
     render();
   });
 
@@ -1333,6 +1790,12 @@ function bindControlEvents() {
     const y = ((event.clientY - layerRect.top) / layerRect.height) * (dom.cardLayer.clientHeight || 560);
     addNode(memberId, x, y);
     notify('Card added to canvas.');
+  });
+
+  dom.slide.addEventListener('pointermove', applyParallaxFromPointer);
+  dom.slide.addEventListener('pointerleave', () => {
+    dom.cardLayer.style.transform = 'translate3d(0, 0, 0)';
+    dom.connectorLayer.style.transform = 'translate3d(0, 0, 0)';
   });
 
   window.addEventListener('resize', scalePreview);
@@ -1662,6 +2125,24 @@ function scalePreview() {
   const scale = Math.max(0.42, Math.min(1, containerWidth / 1280));
   dom.slide.style.transform = `scale(${scale})`;
   dom.slide.style.marginBottom = `${(1 - scale) * 720}px`;
+}
+
+function applyParallaxFromPointer(event) {
+  if (!state.settings.parallaxEnabled) {
+    dom.cardLayer.style.transform = 'translate3d(0, 0, 0)';
+    dom.connectorLayer.style.transform = 'translate3d(0, 0, 0)';
+    return;
+  }
+  const rect = dom.slide.getBoundingClientRect();
+  const px = clamp((event.clientX - rect.left) / rect.width, 0, 1) - 0.5;
+  const py = clamp((event.clientY - rect.top) / rect.height, 0, 1) - 0.5;
+  const amount = clamp(Number(state.settings.parallaxAmount || 8), 0, 24);
+  const cardX = Math.round(px * amount * 2);
+  const cardY = Math.round(py * amount * 2);
+  const lineX = Math.round(px * amount * 1.2);
+  const lineY = Math.round(py * amount * 1.2);
+  dom.cardLayer.style.transform = `translate3d(${cardX}px, ${cardY}px, 0)`;
+  dom.connectorLayer.style.transform = `translate3d(${lineX}px, ${lineY}px, 0)`;
 }
 
 function persistState() {

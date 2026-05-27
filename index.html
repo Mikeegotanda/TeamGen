@@ -179,6 +179,157 @@
       <div class="section-divider"></div>
 
       <div class="control-section">
+        <h3 class="section-title">Advanced Studio</h3>
+
+        <details class="control-dropdown" open>
+          <summary>Layout Modes</summary>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="layoutModeInput">Layout Mode</label>
+              <select id="layoutModeInput">
+                <option value="strict">Strict Hierarchy</option>
+                <option value="symmetrical">Symmetrical</option>
+                <option value="editorial">Editorial</option>
+                <option value="clustered">Clustered</option>
+                <option value="masonry">Masonry</option>
+                <option value="organic">Organic</option>
+                <option value="radial">Radial</option>
+                <option value="hexagonal">Hexagonal</option>
+                <option value="swimlane">Swimlane</option>
+                <option value="physics">Physics Based</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="formalOrganicInput">Formal ↔ Organic</label>
+              <input id="formalOrganicInput" type="range" min="0" max="100" />
+            </div>
+            <div class="field-stack compact">
+              <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
+              <input id="symmetryDynamicInput" type="range" min="0" max="100" />
+            </div>
+          </div>
+          <div class="field-stack compact">
+            <label for="structureFreeformInput">Structured ↔ Freeform</label>
+            <input id="structureFreeformInput" type="range" min="0" max="100" />
+          </div>
+        </details>
+
+        <details class="control-dropdown">
+          <summary>Depth & Atmosphere</summary>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="shadowIntensityInput">Shadow Intensity</label>
+              <input id="shadowIntensityInput" type="range" min="0" max="220" />
+            </div>
+            <div class="field-stack compact">
+              <label for="blurStrengthInput">Blur Strength</label>
+              <input id="blurStrengthInput" type="range" min="0" max="24" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="backgroundDepthInput">Background Depth</label>
+              <input id="backgroundDepthInput" type="range" min="0" max="100" />
+            </div>
+            <div class="field-stack compact">
+              <label for="parallaxAmountInput">Parallax Amount</label>
+              <input id="parallaxAmountInput" type="range" min="0" max="22" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <label class="check-wrap">
+              <input id="floatingCardsInput" type="checkbox" checked />
+              Floating Cards
+            </label>
+            <label class="check-wrap">
+              <input id="parallaxEnabledInput" type="checkbox" />
+              Parallax
+            </label>
+          </div>
+          <div class="grid-2">
+            <label class="check-wrap">
+              <input id="ambientGlowInput" type="checkbox" />
+              Ambient Glow
+            </label>
+          </div>
+        </details>
+
+        <details class="control-dropdown">
+          <summary>Connector Studio</summary>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="connectorVisualStyleInput">Line Personality</label>
+              <select id="connectorVisualStyleInput">
+                <option value="default">Default</option>
+                <option value="sharp">Sharp</option>
+                <option value="rounded">Rounded</option>
+                <option value="organic">Organic</option>
+                <option value="technical">Technical</option>
+                <option value="hand-drawn">Hand Drawn</option>
+                <option value="double">Double Line</option>
+                <option value="dotted">Dotted</option>
+                <option value="segmented">Segmented</option>
+                <option value="tapered">Tapered</option>
+              </select>
+            </div>
+            <div class="field-stack compact">
+              <label for="connectorDecorationInput">Decorations</label>
+              <select id="connectorDecorationInput">
+                <option value="none">None</option>
+                <option value="arrowheads">Arrowheads</option>
+                <option value="dots">Dots</option>
+                <option value="junctions">Junction Nodes</option>
+                <option value="labels">Labels</option>
+                <option value="status">Status Indicators</option>
+              </select>
+            </div>
+          </div>
+        </details>
+
+        <details class="control-dropdown">
+          <summary>Card & Avatar Studio</summary>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="cardVisualTypeInput">Card Visual Type</label>
+              <select id="cardVisualTypeInput">
+                <option value="standard">Standard</option>
+                <option value="glass">Glass</option>
+                <option value="elevated">Elevated</option>
+                <option value="minimal">Minimal</option>
+                <option value="outline">Outline</option>
+                <option value="filled">Filled</option>
+                <option value="split">Split Panel</option>
+                <option value="stack">Stack Card</option>
+                <option value="frosted">Frosted</option>
+                <option value="gradient">Gradient</option>
+                <option value="blueprint">Blueprint</option>
+                <option value="editorial">Editorial</option>
+              </select>
+            </div>
+            <div class="field-stack compact">
+              <label for="avatarTreatmentInput">Avatar Treatment</label>
+              <select id="avatarTreatmentInput">
+                <option value="default">Default</option>
+                <option value="circle">Circle</option>
+                <option value="rounded">Rounded</option>
+                <option value="square">Square</option>
+                <option value="monochrome">Monochrome</option>
+                <option value="duotone">Duotone</option>
+                <option value="cutout">Background Cutout</option>
+                <option value="floating">Floating Portrait</option>
+                <option value="hidden">No Avatar</option>
+                <option value="full-bleed">Full Bleed Headshot</option>
+              </select>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="control-section">
         <h3 class="section-title">Colors</h3>
         <div class="grid-2">
           <div class="field-stack compact">
