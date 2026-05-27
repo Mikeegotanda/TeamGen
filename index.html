@@ -174,6 +174,43 @@
             <label for="structureFreeformInput">Structured ↔ Freeform</label>
             <input id="structureFreeformInput" type="range" min="0" max="100" />
           </div>
+          <p class="section-title">Depth & Atmosphere</p>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="shadowIntensityInput">Shadow Intensity</label>
+              <input id="shadowIntensityInput" type="range" min="0" max="220" />
+            </div>
+            <div class="field-stack compact">
+              <label for="blurStrengthInput">Blur Strength</label>
+              <input id="blurStrengthInput" type="range" min="0" max="24" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="backgroundDepthInput">Background Depth</label>
+              <input id="backgroundDepthInput" type="range" min="0" max="100" />
+            </div>
+            <div class="field-stack compact">
+              <label for="parallaxAmountInput">Parallax Amount</label>
+              <input id="parallaxAmountInput" type="range" min="0" max="22" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <label class="check-wrap">
+              <input id="floatingCardsInput" type="checkbox" checked />
+              Floating Cards
+            </label>
+            <label class="check-wrap">
+              <input id="parallaxEnabledInput" type="checkbox" />
+              Parallax
+            </label>
+          </div>
+          <div class="grid-2">
+            <label class="check-wrap">
+              <input id="ambientGlowInput" type="checkbox" />
+              Ambient Glow
+            </label>
+          </div>
           <p class="section-title">Background</p>
           <div class="grid-2">
             <div class="field-stack compact">
@@ -303,46 +340,6 @@
       <details class="control-dropdown">
         <summary>Advanced Studio</summary>
         <div class="control-section">
-
-        <details class="control-dropdown">
-          <summary>Depth & Atmosphere</summary>
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="shadowIntensityInput">Shadow Intensity</label>
-              <input id="shadowIntensityInput" type="range" min="0" max="220" />
-            </div>
-            <div class="field-stack compact">
-              <label for="blurStrengthInput">Blur Strength</label>
-              <input id="blurStrengthInput" type="range" min="0" max="24" />
-            </div>
-          </div>
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="backgroundDepthInput">Background Depth</label>
-              <input id="backgroundDepthInput" type="range" min="0" max="100" />
-            </div>
-            <div class="field-stack compact">
-              <label for="parallaxAmountInput">Parallax Amount</label>
-              <input id="parallaxAmountInput" type="range" min="0" max="22" />
-            </div>
-          </div>
-          <div class="grid-2">
-            <label class="check-wrap">
-              <input id="floatingCardsInput" type="checkbox" checked />
-              Floating Cards
-            </label>
-            <label class="check-wrap">
-              <input id="parallaxEnabledInput" type="checkbox" />
-              Parallax
-            </label>
-          </div>
-          <div class="grid-2">
-            <label class="check-wrap">
-              <input id="ambientGlowInput" type="checkbox" />
-              Ambient Glow
-            </label>
-          </div>
-        </details>
 
         <details class="control-dropdown">
           <summary>Card & Avatar Studio</summary>
