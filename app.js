@@ -34,6 +34,9 @@ const PRESETS = {
     bgColor: '#e5e5e5',
     accentColor: '#3f71c4',
     headingColor: '#0f131a',
+    headingSize: 58,
+    headingFont: 'Sora',
+    headingBold: true,
     cardBg: '#ffffff',
     cardTextColor: '#101820',
     cardSubColor: '#263342',
@@ -54,6 +57,9 @@ const PRESETS = {
     bgColor: '#e5e5e5',
     accentColor: '#be1e2d',
     headingColor: '#10131a',
+    headingSize: 58,
+    headingFont: 'Sora',
+    headingBold: true,
     cardBg: '#ffffff',
     cardTextColor: '#11181f',
     cardSubColor: '#2e3947',
@@ -74,6 +80,9 @@ const PRESETS = {
     bgColor: '#ece9ea',
     accentColor: '#be1e2d',
     headingColor: '#111822',
+    headingSize: 54,
+    headingFont: 'Sora',
+    headingBold: true,
     cardBg: '#ffffff',
     cardTextColor: '#121b25',
     cardSubColor: '#2b3a4a',
@@ -94,6 +103,9 @@ const PRESETS = {
     bgColor: '#e0e0e2',
     accentColor: '#be1e2d',
     headingColor: '#141b23',
+    headingSize: 52,
+    headingFont: 'Sora',
+    headingBold: false,
     cardBg: '#ffffff',
     cardTextColor: '#11171f',
     cardSubColor: '#2f3b48',
@@ -110,6 +122,14 @@ const PRESETS = {
   }
 };
 
+function normalizeSettings(settings) {
+  const presetKey = settings?.type && PRESETS[settings.type] ? settings.type : 'preconstruction';
+  return {
+    ...PRESETS[presetKey],
+    ...(settings || {})
+  };
+}
+
 const state = {
   members: structuredClone(DEFAULT_MEMBERS),
   rows: [],
@@ -117,7 +137,7 @@ const state = {
   manualLinks: [],
   selectedCardId: null,
   nodeSequence: 1,
-  settings: structuredClone(PRESETS.preconstruction),
+  settings: normalizeSettings(structuredClone(PRESETS.preconstruction)),
   autoConnect: true,
   draggingNodeId: null
 };
@@ -140,6 +160,9 @@ const dom = {
   bgColorInput: document.getElementById('bgColorInput'),
   accentColorInput: document.getElementById('accentColorInput'),
   headingColorInput: document.getElementById('headingColorInput'),
+  headingSizeInput: document.getElementById('headingSizeInput'),
+  headingFontInput: document.getElementById('headingFontInput'),
+  headingBoldInput: document.getElementById('headingBoldInput'),
   cardBgInput: document.getElementById('cardBgInput'),
   nameSizeInput: document.getElementById('nameSizeInput'),
   titleSizeInput: document.getElementById('titleSizeInput'),
@@ -615,6 +638,9 @@ function applyStyleToSlide() {
 
   dom.slideTitle.textContent = state.settings.title;
   dom.slideTitle.style.color = state.settings.headingColor;
+  dom.slideTitle.style.fontSize = `${state.settings.headingSize}px`;
+  dom.slideTitle.style.fontFamily = `${state.settings.headingFont}, sans-serif`;
+  dom.slideTitle.style.fontWeight = state.settings.headingBold ? '800' : '600';
 
   if (state.settings.type === 'introduction') {
     dom.slide.style.backgroundImage = `${state.settings.bgImage ? `url(${state.settings.bgImage}),` : ''}radial-gradient(circle at 50% -20%, rgba(255,255,255,0.48), rgba(255,255,255,0))`;
@@ -674,6 +700,9 @@ function syncControls() {
   dom.bgColorInput.value = state.settings.bgColor;
   dom.accentColorInput.value = state.settings.accentColor;
   dom.headingColorInput.value = state.settings.headingColor;
+  dom.headingSizeInput.value = String(state.settings.headingSize);
+  dom.headingFontInput.value = state.settings.headingFont;
+  dom.headingBoldInput.checked = state.settings.headingBold;
   dom.cardBgInput.value = state.settings.cardBg;
   dom.nameSizeInput.value = String(state.settings.nameSize);
   dom.titleSizeInput.value = String(state.settings.roleSize);
@@ -726,6 +755,21 @@ function bindControlEvents() {
 
   dom.headingColorInput.addEventListener('input', () => {
     state.settings.headingColor = dom.headingColorInput.value;
+    render();
+  });
+
+  dom.headingSizeInput.addEventListener('input', () => {
+    state.settings.headingSize = Number(dom.headingSizeInput.value);
+    render();
+  });
+
+  dom.headingFontInput.addEventListener('change', () => {
+    state.settings.headingFont = dom.headingFontInput.value;
+    render();
+  });
+
+  dom.headingBoldInput.addEventListener('change', () => {
+    state.settings.headingBold = dom.headingBoldInput.checked;
     render();
   });
 
@@ -1160,7 +1204,7 @@ function restoreState() {
     state.manualLinks = parsed.manualLinks || [];
     state.selectedCardId = null;
     state.nodeSequence = parsed.nodeSequence || 1;
-    state.settings = parsed.settings;
+    state.settings = normalizeSettings(parsed.settings);
     state.autoConnect = parsed.autoConnect !== false;
   } catch (error) {
     console.error(error);
