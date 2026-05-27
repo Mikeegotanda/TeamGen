@@ -35,6 +35,7 @@ const PRESETS = {
     avatarStyle: 'rounded',
     cardElevation: 'soft',
     infoVisibility: 'name-role',
+    cardScale: 100,
     backgroundStyle: 'plain',
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
@@ -89,6 +90,7 @@ const PRESETS = {
     avatarStyle: 'rounded',
     cardElevation: 'soft',
     infoVisibility: 'name-role',
+    cardScale: 100,
     backgroundStyle: 'plain',
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
@@ -143,6 +145,7 @@ const PRESETS = {
     avatarStyle: 'circle',
     cardElevation: 'soft',
     infoVisibility: 'name-role',
+    cardScale: 100,
     backgroundStyle: 'plain',
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
@@ -197,6 +200,7 @@ const PRESETS = {
     avatarStyle: 'rounded',
     cardElevation: 'flat',
     infoVisibility: 'name-role',
+    cardScale: 100,
     backgroundStyle: 'plain',
     cardEntranceAnimation: 'tree-grow',
     connectorAnimation: 'draw',
@@ -299,6 +303,7 @@ const dom = {
   cardShadowInput: document.getElementById('cardShadowInput'),
   cardOutlineInput: document.getElementById('cardOutlineInput'),
   cardRadiusInput: document.getElementById('cardRadiusInput'),
+  cardScaleInput: document.getElementById('cardScaleInput'),
   cardShapeInput: document.getElementById('cardShapeInput'),
   cardLayoutInput: document.getElementById('cardLayoutInput'),
   avatarStyleInput: document.getElementById('avatarStyleInput'),
@@ -358,6 +363,14 @@ function getMemberById(memberId) {
   return state.members.find((member) => member.id === memberId);
 }
 
+function getCardScaleFactor() {
+  const raw = Number(state.settings.cardScale);
+  if (!Number.isFinite(raw)) {
+    return 1;
+  }
+  return clamp(raw / 100, 0.5, 1.3);
+}
+
 function currentCardSize() {
   let width = 300;
   let height = 102;
@@ -377,6 +390,10 @@ function currentCardSize() {
     width = Math.max(220, Math.floor(width * 0.88));
     height = Math.max(82, Math.floor(height * 0.84));
   }
+
+  const scale = getCardScaleFactor();
+  width = Math.round(width * scale);
+  height = Math.round(height * scale);
 
   return { width, height };
 }
@@ -797,6 +814,8 @@ function cardTemplate(member, xCenter) {
   const showAvatar = state.settings.avatarStyle !== 'hidden' && avatarTreatment !== 'hidden';
   const layout = state.settings.cardLayout;
   const compact = layout === 'compact';
+  const scale = getCardScaleFactor();
+  const scaled = (value, min = 0) => Math.max(min, Math.round(value * scale));
 
   const avatarRadiusMap = {
     circle: '50%',
@@ -812,7 +831,7 @@ function cardTemplate(member, xCenter) {
   } else if (avatarTreatment === 'rounded') {
     avatarRadius = '12px';
   }
-  const avatarSize = compact ? 56 : 78;
+  const avatarSize = scaled(compact ? 56 : 78, 30);
   const avatarFilter =
     avatarTreatment === 'monochrome'
       ? 'grayscale(1) contrast(1.05)'
@@ -851,7 +870,7 @@ function cardTemplate(member, xCenter) {
   if (layout === 'avatar-top') {
     return `
       <div class="card-accent"></div>
-      <div class="card-main" style="grid-template-columns:1fr;justify-items:center;gap:${compact ? '6px' : '10px'};padding:${compact ? '10px' : '12px'};">
+      <div class="card-main" style="grid-template-columns:1fr;justify-items:center;gap:${scaled(compact ? 6 : 10, 3)}px;padding:${scaled(compact ? 10 : 12, 6)}px;">
         ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${avatarSize}px;height:${avatarSize}px;${avatarExtraStyle};" />` : ''}
         ${copyBlock}
       </div>
@@ -860,8 +879,8 @@ function cardTemplate(member, xCenter) {
 
   if (state.settings.cardStyle === 'pill') {
     return `
-      <div class="card-main" style="grid-template-columns:${showAvatar ? (isRight ? `${compact ? '1fr 64px' : '1fr 88px'}` : `${compact ? '64px 1fr' : '88px 1fr'}`) : '1fr'};padding:${isRight ? '10px 12px 10px 14px' : '10px 14px 10px 12px'};gap:${compact ? '10px' : '14px'};">
-        ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${compact ? 64 : 86}px;height:${compact ? 64 : 86}px;${avatarExtraStyle};order:${isRight ? '2' : '0'};border:3px solid #f2dce0;" />` : ''}
+      <div class="card-main" style="grid-template-columns:${showAvatar ? (isRight ? `1fr ${scaled(compact ? 64 : 88, 34)}px` : `${scaled(compact ? 64 : 88, 34)}px 1fr`) : '1fr'};padding:${scaled(10, 6)}px ${scaled(isRight ? 12 : 14, 8)}px ${scaled(10, 6)}px ${scaled(isRight ? 14 : 12, 8)}px;gap:${scaled(compact ? 10 : 14, 6)}px;">
+        ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${scaled(compact ? 64 : 86, 34)}px;height:${scaled(compact ? 64 : 86, 34)}px;${avatarExtraStyle};order:${isRight ? '2' : '0'};border:${Math.max(1, scaled(3, 1))}px solid #f2dce0;" />` : ''}
         ${copyBlock}
       </div>
     `;
@@ -869,8 +888,8 @@ function cardTemplate(member, xCenter) {
 
   return `
     <div class="card-accent"></div>
-    <div class="card-main" style="grid-template-columns:${showAvatar ? `${compact ? 58 : 78}px 1fr` : '1fr'};gap:${compact ? '10px' : '14px'};padding:${compact ? '10px' : '12px'};">
-      ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${compact ? 58 : 78}px;height:${compact ? 58 : 64}px;${avatarExtraStyle};" />` : ''}
+    <div class="card-main" style="grid-template-columns:${showAvatar ? `${scaled(compact ? 58 : 78, 30)}px 1fr` : '1fr'};gap:${scaled(compact ? 10 : 14, 6)}px;padding:${scaled(compact ? 10 : 12, 6)}px;">
+      ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${scaled(compact ? 58 : 78, 30)}px;height:${scaled(compact ? 58 : 64, 30)}px;${avatarExtraStyle};" />` : ''}
       ${copyBlock}
     </div>
   `;
@@ -1153,6 +1172,7 @@ function renderCards(layouts) {
     : '0px solid transparent';
   const cardShadow = getCardShadowFromElevation();
   const cardRadius = getCardRadiusFromShape();
+  const cardScale = getCardScaleFactor();
   const blurStrength = clamp(Number(state.settings.blurStrength || 10), 0, 24);
   const timings = animationTimings();
   const entranceClass = cardAnimationClass();
@@ -1212,7 +1232,7 @@ function renderCards(layouts) {
   dom.cardLayer.querySelectorAll('.card-name').forEach((element) => {
     const visual = element.closest('.canvas-card')?.dataset.cardVisual;
     const color = visual === 'filled' ? '#ffffff' : state.settings.cardTextColor;
-    element.style.fontSize = `${state.settings.nameSize}px`;
+    element.style.fontSize = `${Math.max(10, Math.round(state.settings.nameSize * cardScale))}px`;
     element.style.fontWeight = state.settings.nameBold ? '800' : '600';
     element.style.color = color;
   });
@@ -1220,7 +1240,7 @@ function renderCards(layouts) {
   dom.cardLayer.querySelectorAll('.card-role').forEach((element) => {
     const visual = element.closest('.canvas-card')?.dataset.cardVisual;
     const color = visual === 'filled' ? 'rgba(255,255,255,0.9)' : state.settings.cardSubColor;
-    element.style.fontSize = `${state.settings.roleSize}px`;
+    element.style.fontSize = `${Math.max(9, Math.round(state.settings.roleSize * cardScale))}px`;
     element.style.color = color;
   });
 
@@ -1667,6 +1687,7 @@ function syncControls() {
   dom.cardShadowInput.checked = state.settings.showShadow;
   dom.cardOutlineInput.checked = state.settings.showOutline;
   dom.cardRadiusInput.value = String(state.settings.cardRadius);
+  dom.cardScaleInput.value = String(state.settings.cardScale ?? 100);
   dom.cardShapeInput.value = state.settings.cardShape;
   dom.cardLayoutInput.value = state.settings.cardLayout;
   dom.avatarStyleInput.value = state.settings.avatarStyle;
@@ -1893,6 +1914,11 @@ function bindControlEvents() {
 
   dom.cardRadiusInput.addEventListener('input', () => {
     state.settings.cardRadius = Number(dom.cardRadiusInput.value);
+    render();
+  });
+
+  dom.cardScaleInput.addEventListener('input', () => {
+    state.settings.cardScale = Number(dom.cardScaleInput.value);
     render();
   });
 
