@@ -123,11 +123,7 @@
             </div>
             <div class="field-stack compact">
               <label for="nodeSpacingInput">Node Spacing</label>
-              <select id="nodeSpacingInput">
-                <option value="compact">Compact</option>
-                <option value="balanced">Balanced</option>
-                <option value="spacious">Spacious</option>
-              </select>
+              <input id="nodeSpacingInput" type="range" min="60" max="160" />
             </div>
           </div>
           <div class="field-stack compact">
@@ -148,27 +144,13 @@
           <div class="field-stack compact">
             <label for="layoutModeInput">Layout Mode</label>
             <select id="layoutModeInput">
-              <option value="strict">Strict Hierarchy</option>
               <option value="symmetrical">Symmetrical</option>
-              <option value="editorial">Editorial</option>
-              <option value="clustered">Clustered</option>
-              <option value="masonry">Masonry</option>
-              <option value="organic">Organic</option>
-              <option value="radial">Radial</option>
-              <option value="hexagonal">Hexagonal</option>
               <option value="swimlane">Swimlane</option>
-              <option value="physics">Physics Based</option>
             </select>
           </div>
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="formalOrganicInput">Formal ↔ Organic</label>
-              <input id="formalOrganicInput" type="range" min="0" max="100" />
-            </div>
-            <div class="field-stack compact">
-              <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
-              <input id="symmetryDynamicInput" type="range" min="0" max="100" />
-            </div>
+          <div class="field-stack compact">
+            <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
+            <input id="symmetryDynamicInput" type="range" min="0" max="100" />
           </div>
           <div class="field-stack compact">
             <label for="structureFreeformInput">Structured ↔ Freeform</label>

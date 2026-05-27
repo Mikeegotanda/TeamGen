@@ -26,7 +26,7 @@ const PRESETS = {
     bgImageOpacity: 100,
     themePreset: 'corporate',
     hierarchyDirection: 'top-down',
-    nodeSpacing: 'balanced',
+    nodeSpacingScale: 100,
     canvasRowCount: 'auto',
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
@@ -44,7 +44,7 @@ const PRESETS = {
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
     animationSpeed: 'normal',
-    layoutMode: 'strict',
+    layoutMode: 'symmetrical',
     formalOrganic: 20,
     symmetryDynamic: 18,
     structureFreeform: 14,
@@ -85,7 +85,7 @@ const PRESETS = {
     bgImageOpacity: 100,
     themePreset: 'corporate',
     hierarchyDirection: 'top-down',
-    nodeSpacing: 'balanced',
+    nodeSpacingScale: 100,
     canvasRowCount: 'auto',
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
@@ -103,7 +103,7 @@ const PRESETS = {
     cardEntranceAnimation: 'cascade',
     connectorAnimation: 'draw',
     animationSpeed: 'normal',
-    layoutMode: 'strict',
+    layoutMode: 'symmetrical',
     formalOrganic: 20,
     symmetryDynamic: 18,
     structureFreeform: 14,
@@ -144,7 +144,7 @@ const PRESETS = {
     bgImageOpacity: 100,
     themePreset: 'corporate',
     hierarchyDirection: 'top-down',
-    nodeSpacing: 'balanced',
+    nodeSpacingScale: 100,
     canvasRowCount: 'auto',
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
@@ -203,7 +203,7 @@ const PRESETS = {
     bgImageOpacity: 100,
     themePreset: 'minimal',
     hierarchyDirection: 'top-down',
-    nodeSpacing: 'balanced',
+    nodeSpacingScale: 100,
     canvasRowCount: 'auto',
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
@@ -221,7 +221,7 @@ const PRESETS = {
     cardEntranceAnimation: 'tree-grow',
     connectorAnimation: 'draw',
     animationSpeed: 'normal',
-    layoutMode: 'editorial',
+    layoutMode: 'symmetrical',
     formalOrganic: 28,
     symmetryDynamic: 32,
     structureFreeform: 30,
@@ -247,6 +247,7 @@ const MAX_SAVED_CHARTS = 30;
 function normalizeSettings(settings) {
   const presetKey = settings?.type && PRESETS[settings.type] ? settings.type : 'preconstruction';
   const legacyGradientEnabled = settings?.backgroundStyle === 'gradient';
+  const legacySpacingMap = { compact: 72, balanced: 100, spacious: 128 };
   const normalized = {
     ...PRESETS[presetKey],
     ...(settings || {})
@@ -263,6 +264,13 @@ function normalizeSettings(settings) {
   normalized.bgGradientColor2 = normalized.bgGradientColor2 || '#dfe8f3';
   normalized.bgImageOpacity = Number.isFinite(Number(normalized.bgImageOpacity)) ? clamp(Number(normalized.bgImageOpacity), 0, 100) : 100;
   normalized.connectorColor = normalized.connectorColor || '#8d949f';
+  if (!Number.isFinite(Number(normalized.nodeSpacingScale)) && typeof normalized.nodeSpacing === 'string') {
+    normalized.nodeSpacingScale = legacySpacingMap[normalized.nodeSpacing] || 100;
+  }
+  normalized.nodeSpacingScale = Number.isFinite(Number(normalized.nodeSpacingScale))
+    ? clamp(Number(normalized.nodeSpacingScale), 60, 160)
+    : 100;
+  normalized.layoutMode = normalized.layoutMode === 'swimlane' ? 'swimlane' : 'symmetrical';
   return normalized;
 }
 
@@ -310,7 +318,6 @@ const dom = {
   connectorAnimationInput: document.getElementById('connectorAnimationInput'),
   animationSpeedInput: document.getElementById('animationSpeedInput'),
   layoutModeInput: document.getElementById('layoutModeInput'),
-  formalOrganicInput: document.getElementById('formalOrganicInput'),
   symmetryDynamicInput: document.getElementById('symmetryDynamicInput'),
   structureFreeformInput: document.getElementById('structureFreeformInput'),
   shadowIntensityInput: document.getElementById('shadowIntensityInput'),
@@ -483,13 +490,11 @@ function currentCardSize() {
 }
 
 function getSpacingScale() {
-  if (state.settings.nodeSpacing === 'compact') {
-    return 0.72;
+  const raw = Number(state.settings.nodeSpacingScale);
+  if (!Number.isFinite(raw)) {
+    return 1;
   }
-  if (state.settings.nodeSpacing === 'spacious') {
-    return 1.28;
-  }
-  return 1;
+  return clamp(raw / 100, 0.6, 1.6);
 }
 
 function getBodyMetrics() {
@@ -1089,8 +1094,7 @@ function rowLayouts() {
     });
   });
 
-  const mode = state.settings.layoutMode || 'strict';
-  const organicAmount = clamp(Number(state.settings.formalOrganic || 0) / 100, 0, 1);
+  const mode = state.settings.layoutMode === 'swimlane' ? 'swimlane' : 'symmetrical';
   const dynamicAmount = clamp(Number(state.settings.symmetryDynamic || 0) / 100, 0, 1);
   const freeformAmount = clamp(Number(state.settings.structureFreeform || 0) / 100, 0, 1);
   const centerX = (metrics.left + metrics.right) / 2;
@@ -1098,47 +1102,7 @@ function rowLayouts() {
   const rowCount = Math.max(1, state.rows.length);
 
   Object.entries(layouts).forEach(([nodeId, layout]) => {
-    const rowProgress = rowCount <= 1 ? 0 : layout.rowIndex / (rowCount - 1);
-    if (mode === 'editorial') {
-      const stagger = layout.rowIndex % 2 === 0 ? -70 : 70;
-      layout.x += stagger * dynamicAmount * 0.9;
-      layout.xCenter += stagger * dynamicAmount * 0.9;
-    } else if (mode === 'clustered') {
-      const clusterSlots = [0.2, 0.5, 0.8];
-      const slot = clusterSlots[(layout.columnIndex || 0) % clusterSlots.length];
-      const targetX = lerp(metrics.left, metrics.right, slot);
-      layout.xCenter = lerp(layout.xCenter, targetX, 0.48);
-      layout.x = layout.xCenter - layout.width / 2;
-    } else if (mode === 'masonry') {
-      const lift = (layout.columnIndex % 2 === 0 ? -1 : 1) * (10 + dynamicAmount * 18);
-      layout.y += lift;
-      layout.yCenter += lift;
-    } else if (mode === 'organic' || mode === 'physics') {
-      const jitterX = (hashToUnit(`${nodeId}-x`) - 0.5) * 90 * organicAmount;
-      const jitterY = (hashToUnit(`${nodeId}-y`) - 0.5) * 70 * (organicAmount * 0.85 + freeformAmount * 0.2);
-      layout.x += jitterX;
-      layout.y += jitterY;
-      layout.xCenter += jitterX;
-      layout.yCenter += jitterY;
-    } else if (mode === 'radial') {
-      const row = layout.rowIndex;
-      const rowSize = Math.max(1, state.rows[row]?.length || 1);
-      const start = -Math.PI / 2;
-      const sweep = Math.PI * 1.7;
-      const angle = rowSize <= 1 ? start : start + (sweep * layout.columnIndex) / Math.max(1, rowSize - 1);
-      const ringRadius = 90 + row * 118;
-      layout.xCenter = centerX + Math.cos(angle) * ringRadius;
-      layout.yCenter = centerY + Math.sin(angle) * (ringRadius * 0.66);
-      layout.x = layout.xCenter - layout.width / 2;
-      layout.y = layout.yCenter - layout.height / 2;
-    } else if (mode === 'hexagonal') {
-      const row = layout.rowIndex;
-      const offset = row % 2 === 0 ? -44 : 44;
-      layout.x += offset;
-      layout.xCenter += offset;
-      layout.y += (layout.columnIndex % 2 === 0 ? -10 : 10) * (0.35 + dynamicAmount * 0.65);
-      layout.yCenter = layout.y + layout.height / 2;
-    } else if (mode === 'swimlane') {
+    if (mode === 'swimlane') {
       const laneCount = Math.max(1, state.rows.length);
       const laneHeight = (metrics.bottom - metrics.top) / laneCount;
       const laneY = metrics.top + laneHeight * layout.rowIndex + laneHeight / 2;
@@ -1160,7 +1124,7 @@ function rowLayouts() {
     }
 
     const freeShift = (hashToUnit(`${nodeId}-free`) - 0.5) * 34 * freeformAmount * 0.6;
-    if (mode !== 'strict' && mode !== 'symmetrical') {
+    if (mode === 'swimlane') {
       layout.x += freeShift;
       layout.xCenter += freeShift;
     }
@@ -1854,7 +1818,7 @@ function fileToDataUrl(file) {
 
 function syncControls() {
   dom.hierarchyDirectionInput.value = state.settings.hierarchyDirection;
-  dom.nodeSpacingInput.value = state.settings.nodeSpacing;
+  dom.nodeSpacingInput.value = String(state.settings.nodeSpacingScale ?? 100);
   dom.rowCountInput.value = state.settings.canvasRowCount || 'auto';
   dom.connectorStyleInput.value = state.settings.connectorStyle;
   dom.connectorTypeInput.value = state.settings.connectorType;
@@ -1863,8 +1827,7 @@ function syncControls() {
   dom.cardEntranceAnimationInput.value = state.settings.cardEntranceAnimation || 'none';
   dom.connectorAnimationInput.value = state.settings.connectorAnimation || 'none';
   dom.animationSpeedInput.value = state.settings.animationSpeed || 'normal';
-  dom.layoutModeInput.value = state.settings.layoutMode || 'strict';
-  dom.formalOrganicInput.value = String(state.settings.formalOrganic ?? 20);
+  dom.layoutModeInput.value = state.settings.layoutMode || 'symmetrical';
   dom.symmetryDynamicInput.value = String(state.settings.symmetryDynamic ?? 18);
   dom.structureFreeformInput.value = String(state.settings.structureFreeform ?? 14);
   dom.shadowIntensityInput.value = String(state.settings.shadowIntensity ?? 100);
@@ -1939,8 +1902,8 @@ function bindControlEvents() {
     render();
   });
 
-  dom.nodeSpacingInput.addEventListener('change', () => {
-    state.settings.nodeSpacing = dom.nodeSpacingInput.value;
+  dom.nodeSpacingInput.addEventListener('input', () => {
+    state.settings.nodeSpacingScale = Number(dom.nodeSpacingInput.value);
     render();
   });
 
@@ -1986,11 +1949,6 @@ function bindControlEvents() {
 
   dom.layoutModeInput.addEventListener('change', () => {
     state.settings.layoutMode = dom.layoutModeInput.value;
-    render();
-  });
-
-  dom.formalOrganicInput.addEventListener('input', () => {
-    state.settings.formalOrganic = Number(dom.formalOrganicInput.value);
     render();
   });
 
