@@ -70,6 +70,8 @@
       <div class="canvas-toolbar">
         <div class="toolbar-group">
           <button id="clearCanvasBtn" class="btn" type="button">Clear Canvas</button>
+          <button id="saveChartBtn" class="btn" type="button">Save Chart</button>
+          <button id="openRecentChartsBtn" class="btn" type="button">Recent Charts</button>
           <label class="check-wrap">
             <input id="autoConnectToggle" type="checkbox" checked />
             Auto connectors
@@ -78,6 +80,13 @@
         <div class="toolbar-group">
           <span id="connectHint" class="hint">Tip: Click one card, then another card to create a manual connector.</span>
         </div>
+      </div>
+      <div id="recentChartsPanel" class="recent-charts-panel is-hidden">
+        <div class="recent-charts-header">
+          <h3>Recent Saved Charts</h3>
+          <button id="closeRecentChartsBtn" class="btn" type="button">Close</button>
+        </div>
+        <div id="recentChartsList" class="recent-charts-list"></div>
       </div>
 
       <div id="previewHost" class="preview-host">

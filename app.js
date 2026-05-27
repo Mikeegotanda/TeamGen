@@ -232,6 +232,8 @@ const PRESETS = {
 };
 
 const STORAGE_KEY = 'teamgen-state-v2';
+const SAVED_CHARTS_KEY = 'teamgen-saved-charts-v1';
+const MAX_SAVED_CHARTS = 30;
 
 function normalizeSettings(settings) {
   const presetKey = settings?.type && PRESETS[settings.type] ? settings.type : 'preconstruction';
@@ -335,6 +337,11 @@ const dom = {
   backgroundImageInput: document.getElementById('backgroundImageInput'),
   autoConnectToggle: document.getElementById('autoConnectToggle'),
   clearCanvasBtn: document.getElementById('clearCanvasBtn'),
+  saveChartBtn: document.getElementById('saveChartBtn'),
+  openRecentChartsBtn: document.getElementById('openRecentChartsBtn'),
+  closeRecentChartsBtn: document.getElementById('closeRecentChartsBtn'),
+  recentChartsPanel: document.getElementById('recentChartsPanel'),
+  recentChartsList: document.getElementById('recentChartsList'),
   exportPngBtn: document.getElementById('exportPngBtn'),
   exportPdfBtn: document.getElementById('exportPdfBtn'),
   exportPptxBtn: document.getElementById('exportPptxBtn'),
@@ -2173,6 +2180,18 @@ function bindControlEvents() {
     render();
   });
 
+  dom.saveChartBtn.addEventListener('click', () => {
+    saveCurrentChart();
+  });
+
+  dom.openRecentChartsBtn.addEventListener('click', () => {
+    toggleRecentChartsPanel();
+  });
+
+  dom.closeRecentChartsBtn.addEventListener('click', () => {
+    toggleRecentChartsPanel(false);
+  });
+
   dom.clearCanvasBtn.addEventListener('click', () => {
     clearCanvas();
     render();
@@ -2579,15 +2598,170 @@ function applyParallaxFromPointer(event) {
   dom.connectorLayer.style.transform = `translate3d(${lineX}px, ${lineY}px, 0)`;
 }
 
+function cloneSnapshotData(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function buildChartSnapshot() {
+  return {
+    members: cloneSnapshotData(state.members),
+    rows: cloneSnapshotData(state.rows),
+    nodes: cloneSnapshotData(state.nodes),
+    manualLinks: cloneSnapshotData(state.manualLinks),
+    nodeSequence: state.nodeSequence,
+    settings: cloneSnapshotData(state.settings),
+    autoConnect: state.autoConnect
+  };
+}
+
+function applyChartSnapshot(snapshot) {
+  if (!snapshot || !snapshot.settings || !snapshot.members) {
+    notify('Saved chart data is invalid.');
+    return;
+  }
+  state.members = cloneSnapshotData(snapshot.members || []);
+  state.rows = cloneSnapshotData(snapshot.rows || []);
+  state.nodes = cloneSnapshotData(snapshot.nodes || {});
+  state.manualLinks = cloneSnapshotData(snapshot.manualLinks || []);
+  state.selectedCardId = null;
+  state.editingMemberId = null;
+  state.nodeSequence = snapshot.nodeSequence || 1;
+  state.settings = normalizeSettings(cloneSnapshotData(snapshot.settings));
+  state.autoConnect = snapshot.autoConnect !== false;
+  resetMemberForm();
+  renderLibrary();
+  syncControls();
+  render();
+}
+
+function getSavedCharts() {
+  const raw = localStorage.getItem(SAVED_CHARTS_KEY);
+  if (!raw) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+function setSavedCharts(charts) {
+  localStorage.setItem(SAVED_CHARTS_KEY, JSON.stringify(charts.slice(0, MAX_SAVED_CHARTS)));
+}
+
+function formatSavedAt(isoText) {
+  const date = new Date(isoText);
+  if (!Number.isFinite(date.getTime())) {
+    return 'Unknown time';
+  }
+  return date.toLocaleString();
+}
+
+function renderRecentChartsList() {
+  const charts = getSavedCharts();
+  if (!charts.length) {
+    dom.recentChartsList.innerHTML = '<p class="recent-empty">No saved charts yet.</p>';
+    return;
+  }
+
+  dom.recentChartsList.innerHTML = charts
+    .map(
+      (entry) => `
+        <article class="recent-item" data-saved-chart-id="${escapeHtml(entry.id)}">
+          <div class="recent-item-meta">
+            <div class="recent-item-name">${escapeHtml(entry.name || 'Untitled Chart')}</div>
+            <div class="recent-item-sub">By ${escapeHtml(entry.savedBy || 'Unknown')} • ${escapeHtml(formatSavedAt(entry.savedAt))}</div>
+          </div>
+          <div class="recent-item-actions">
+            <button class="btn recent-load-btn" type="button" data-load-chart-id="${escapeHtml(entry.id)}">Open</button>
+            <button class="btn recent-delete-btn" type="button" data-delete-chart-id="${escapeHtml(entry.id)}">Delete</button>
+          </div>
+        </article>
+      `
+    )
+    .join('');
+
+  dom.recentChartsList.querySelectorAll('.recent-load-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const chartId = button.dataset.loadChartId;
+      if (!chartId) {
+        return;
+      }
+      const chart = getSavedCharts().find((entry) => entry.id === chartId);
+      if (!chart) {
+        notify('Saved chart not found.');
+        renderRecentChartsList();
+        return;
+      }
+      applyChartSnapshot(chart.snapshot);
+      notify(`Opened saved chart: ${chart.name}.`);
+      dom.recentChartsPanel.classList.add('is-hidden');
+    });
+  });
+
+  dom.recentChartsList.querySelectorAll('.recent-delete-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const chartId = button.dataset.deleteChartId;
+      if (!chartId) {
+        return;
+      }
+      const chartsNow = getSavedCharts();
+      const target = chartsNow.find((entry) => entry.id === chartId);
+      const next = chartsNow.filter((entry) => entry.id !== chartId);
+      setSavedCharts(next);
+      renderRecentChartsList();
+      notify(target ? `Deleted saved chart: ${target.name}.` : 'Saved chart deleted.');
+    });
+  });
+}
+
+function saveCurrentChart() {
+  const defaultName = state.settings.title || 'Team Chart';
+  const chartName = window.prompt('Save chart name:', defaultName);
+  if (chartName === null) {
+    notify('Save canceled.');
+    return;
+  }
+  const trimmedName = chartName.trim();
+  if (!trimmedName) {
+    notify('Chart name is required to save.');
+    return;
+  }
+  const savedByPrompt = window.prompt('Saved by (name):', '');
+  if (savedByPrompt === null) {
+    notify('Save canceled.');
+    return;
+  }
+  const savedBy = savedByPrompt.trim() || 'Unknown';
+  const entry = {
+    id: `chart-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
+    name: trimmedName,
+    savedBy,
+    savedAt: new Date().toISOString(),
+    snapshot: buildChartSnapshot()
+  };
+  const charts = getSavedCharts();
+  setSavedCharts([entry, ...charts]);
+  renderRecentChartsList();
+  notify(`Saved chart: ${trimmedName} (by ${savedBy}).`);
+}
+
+function toggleRecentChartsPanel(forceOpen = null) {
+  const shouldOpen = forceOpen === null ? dom.recentChartsPanel.classList.contains('is-hidden') : forceOpen;
+  if (shouldOpen) {
+    renderRecentChartsList();
+    dom.recentChartsPanel.classList.remove('is-hidden');
+    return;
+  }
+  dom.recentChartsPanel.classList.add('is-hidden');
+}
+
 function persistState() {
   const payload = {
-    members: state.members,
-    rows: state.rows,
-    nodes: state.nodes,
-    manualLinks: state.manualLinks,
-    nodeSequence: state.nodeSequence,
-    settings: state.settings,
-    autoConnect: state.autoConnect
+    ...buildChartSnapshot()
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
@@ -2633,6 +2807,7 @@ function boot() {
   restoreState();
   bindControlEvents();
   renderLibrary();
+  renderRecentChartsList();
   syncControls();
   render();
   scalePreview();
