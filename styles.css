@@ -1,9 +1,11 @@
 ﻿:root {
-  --bg-app: #d8dce1;
-  --panel-bg: #f5f7fa;
-  --panel-border: #c9d1db;
-  --text-main: #0e1a28;
-  --text-muted: #516170;
+  --bg-app: #d5dce6;
+  --panel-bg: rgba(255, 255, 255, 0.44);
+  --panel-border: rgba(255, 255, 255, 0.58);
+  --text-main: #112036;
+  --text-muted: #536478;
+  --glass-shadow: 0 18px 36px rgba(13, 27, 42, 0.16);
+  --glass-inner: inset 0 1px 0 rgba(255, 255, 255, 0.65);
   --brand-red: #be1e2d;
   --brand-red-deep: #880f1d;
   --slide-bg: #e7e7e7;
@@ -30,9 +32,12 @@ body {
 }
 
 body {
-  font-family: "Manrope", sans-serif;
+  font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "Manrope", sans-serif;
   color: var(--text-main);
-  background: radial-gradient(circle at 20% 0%, #f4f8ff, var(--bg-app) 40%, #cfd4dc 100%);
+  background:
+    radial-gradient(1200px 700px at -12% -20%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0)),
+    radial-gradient(900px 520px at 110% 100%, rgba(173, 190, 225, 0.42), rgba(173, 190, 225, 0)),
+    linear-gradient(145deg, #d9dfe7 0%, #ccd4df 45%, #c6cfdb 100%);
 }
 
 .app-shell {
@@ -40,15 +45,17 @@ body {
   height: 100vh;
   display: grid;
   grid-template-columns: 320px minmax(680px, 1fr) 340px;
-  gap: 12px;
-  padding: 12px;
+  gap: 14px;
+  padding: 14px;
 }
 
 .panel {
-  background: linear-gradient(180deg, #f8fafd, var(--panel-bg));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), var(--panel-bg));
   border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  box-shadow: 0 10px 24px rgba(12, 26, 41, 0.08);
+  border-radius: 22px;
+  box-shadow: var(--glass-shadow), var(--glass-inner);
+  backdrop-filter: blur(16px) saturate(145%);
+  -webkit-backdrop-filter: blur(16px) saturate(145%);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -56,15 +63,17 @@ body {
 }
 
 .panel-header {
-  padding: 16px 16px 10px;
-  border-bottom: 1px solid #dce2e9;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.58);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.14));
 }
 
 .panel-header h2 {
   margin: 0;
-  font-family: "Sora", sans-serif;
+  font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 19px;
   line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 .panel-header p {
@@ -106,11 +115,12 @@ body {
 #newMemberDepartment,
 #slideType {
   border: 1px solid #c8d1db;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 8px 10px;
   font-size: 13px;
-  font-family: "Manrope", sans-serif;
-  background: #fff;
+  font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", "Manrope", sans-serif;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
 }
 
 .field-stack input[type="file"] {
@@ -131,9 +141,11 @@ body {
 .library-list {
   overflow: auto;
   min-height: 220px;
-  border: 1px solid #d5dce5;
-  border-radius: 12px;
-  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
   padding: 8px;
 }
 
@@ -143,11 +155,12 @@ body {
   gap: 10px;
   align-items: center;
   padding: 8px;
-  border-radius: 10px;
-  border: 1px solid #dce2ea;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.68);
   cursor: grab;
   margin-bottom: 8px;
-  background: linear-gradient(180deg, #fff, #f8fbff);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(247, 250, 255, 0.46));
+  box-shadow: 0 8px 16px rgba(23, 42, 62, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.66);
 }
 
 .member-chip:active {
@@ -188,9 +201,9 @@ body {
 }
 
 .add-member-box {
-  border: 1px dashed #bcc8d5;
-  border-radius: 12px;
-  background: #fcfdff;
+  border: 1px dashed rgba(130, 151, 177, 0.42);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.38);
   padding: 10px;
 }
 
@@ -202,14 +215,15 @@ body {
 }
 
 .btn {
-  border: 1px solid #aebccd;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #ffffff, #e9eff6);
-  color: #10233a;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(232, 240, 251, 0.56));
+  color: #12263f;
   padding: 8px 11px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 8px 16px rgba(21, 43, 66, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.76);
 }
 
 .btn:hover {
@@ -217,9 +231,10 @@ body {
 }
 
 .btn-primary {
-  border-color: #8f1722;
-  background: linear-gradient(180deg, #d9293e, #ad1b2d);
+  border-color: rgba(173, 27, 45, 0.65);
+  background: linear-gradient(180deg, rgba(217, 41, 62, 0.95), rgba(173, 27, 45, 0.95));
   color: #fff;
+  box-shadow: 0 10px 20px rgba(160, 26, 44, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.38);
 }
 
 .center-stage {
@@ -230,10 +245,13 @@ body {
 }
 
 .canvas-toolbar {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid #cad3de;
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 18px;
   padding: 10px;
+  box-shadow: var(--glass-shadow), var(--glass-inner);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -262,9 +280,9 @@ body {
 .preview-host {
   flex: 1;
   min-height: 0;
-  background: #cfd4dc;
-  border: 1px solid #bdc6d3;
-  border-radius: 14px;
+  background: rgba(202, 211, 224, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  border-radius: 20px;
   overflow: auto;
   display: flex;
   justify-content: center;
@@ -397,9 +415,11 @@ body {
 }
 
 .ai-box {
-  border: 1px solid #cfd8e4;
-  border-radius: 12px;
-  background: #f8fbff;
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(10px) saturate(135%);
+  -webkit-backdrop-filter: blur(10px) saturate(135%);
   padding: 10px;
 }
 
