@@ -31,6 +31,7 @@ const PRESETS = {
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
     connectorWeight: 'medium',
+    connectorColor: '#8d949f',
     cardShape: 'rounded',
     cardLayout: 'avatar-left',
     avatarStyle: 'rounded',
@@ -89,6 +90,7 @@ const PRESETS = {
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
     connectorWeight: 'medium',
+    connectorColor: '#8d949f',
     cardShape: 'rounded',
     cardLayout: 'avatar-left',
     avatarStyle: 'rounded',
@@ -147,6 +149,7 @@ const PRESETS = {
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
     connectorWeight: 'medium',
+    connectorColor: '#8d949f',
     cardShape: 'pill',
     cardLayout: 'avatar-left',
     avatarStyle: 'circle',
@@ -205,6 +208,7 @@ const PRESETS = {
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
     connectorWeight: 'medium',
+    connectorColor: '#8d949f',
     cardShape: 'soft',
     cardLayout: 'avatar-top',
     avatarStyle: 'rounded',
@@ -258,6 +262,7 @@ function normalizeSettings(settings) {
   normalized.bgGradientEnabled = typeof normalized.bgGradientEnabled === 'boolean' ? normalized.bgGradientEnabled : legacyGradientEnabled;
   normalized.bgGradientColor2 = normalized.bgGradientColor2 || '#dfe8f3';
   normalized.bgImageOpacity = Number.isFinite(Number(normalized.bgImageOpacity)) ? clamp(Number(normalized.bgImageOpacity), 0, 100) : 100;
+  normalized.connectorColor = normalized.connectorColor || '#8d949f';
   return normalized;
 }
 
@@ -300,6 +305,7 @@ const dom = {
   connectorStyleInput: document.getElementById('connectorStyleInput'),
   connectorTypeInput: document.getElementById('connectorTypeInput'),
   connectorWeightInput: document.getElementById('connectorWeightInput'),
+  connectorColorInput: document.getElementById('connectorColorInput'),
   cardEntranceAnimationInput: document.getElementById('cardEntranceAnimationInput'),
   connectorAnimationInput: document.getElementById('connectorAnimationInput'),
   animationSpeedInput: document.getElementById('animationSpeedInput'),
@@ -1594,6 +1600,7 @@ function renderConnectors(layouts) {
   const decorations = [];
   const weightMap = { thin: 2, medium: 4, bold: 7 };
   const strokeWidth = weightMap[state.settings.connectorWeight] || 4;
+  const connectorColor = state.settings.connectorColor || '#8d949f';
   const timings = animationTimings();
   const connectorClass = connectorAnimationClass();
   const visual = connectorVisualProfile();
@@ -1647,7 +1654,7 @@ function renderConnectors(layouts) {
       const fromLayout = layouts[link.from];
       const toLayout = layouts[link.to];
       if (fromLayout && toLayout) {
-        pushPath(fromLayout, toLayout, '#8d949f', strokeWidth, 0.8);
+        pushPath(fromLayout, toLayout, connectorColor, strokeWidth, 0.82);
       }
     });
   }
@@ -1658,10 +1665,10 @@ function renderConnectors(layouts) {
     if (!fromLayout || !toLayout) {
       return;
     }
-    pushPath(fromLayout, toLayout, state.settings.accentColor, Math.max(strokeWidth + 1, 4), 1);
+    pushPath(fromLayout, toLayout, connectorColor, Math.max(strokeWidth + 1, 4), 1);
   });
 
-  const defs = `<defs><marker id="connector-arrow" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,4 L0,8 z" fill="${state.settings.accentColor}"></path></marker></defs>`;
+  const defs = `<defs><marker id="connector-arrow" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,4 L0,8 z" fill="${connectorColor}"></path></marker></defs>`;
   dom.connectorLayer.innerHTML = `${defs}${paths.join('')}${decorations.join('')}`;
 
   if (connectorClass === 'anim-connector-draw') {
@@ -1828,6 +1835,7 @@ function syncControls() {
   dom.connectorStyleInput.value = state.settings.connectorStyle;
   dom.connectorTypeInput.value = state.settings.connectorType;
   dom.connectorWeightInput.value = state.settings.connectorWeight;
+  dom.connectorColorInput.value = state.settings.connectorColor || '#8d949f';
   dom.cardEntranceAnimationInput.value = state.settings.cardEntranceAnimation || 'none';
   dom.connectorAnimationInput.value = state.settings.connectorAnimation || 'none';
   dom.animationSpeedInput.value = state.settings.animationSpeed || 'normal';
@@ -1929,6 +1937,11 @@ function bindControlEvents() {
 
   dom.connectorWeightInput.addEventListener('change', () => {
     state.settings.connectorWeight = dom.connectorWeightInput.value;
+    render();
+  });
+
+  dom.connectorColorInput.addEventListener('input', () => {
+    state.settings.connectorColor = dom.connectorColorInput.value;
     render();
   });
 

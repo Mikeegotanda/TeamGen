@@ -199,6 +199,46 @@
               <option value="bold">Bold</option>
             </select>
           </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="connectorVisualStyleInput">Line Personality</label>
+              <select id="connectorVisualStyleInput">
+                <option value="default">Default</option>
+                <option value="sharp">Sharp</option>
+                <option value="rounded">Rounded</option>
+                <option value="organic">Organic</option>
+                <option value="technical">Technical</option>
+                <option value="hand-drawn">Hand Drawn</option>
+                <option value="double">Double Line</option>
+                <option value="tapered">Tapered</option>
+              </select>
+            </div>
+            <div class="field-stack compact">
+              <label for="connectorDecorationInput">Decorations</label>
+              <select id="connectorDecorationInput">
+                <option value="none">None</option>
+                <option value="arrowheads">Arrowheads</option>
+                <option value="dots">Dots</option>
+                <option value="junctions">Junction Nodes</option>
+                <option value="status">Status Indicators</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="connectorColorInput">Connector Color</label>
+              <input id="connectorColorInput" type="color" />
+            </div>
+            <div class="field-stack compact">
+              <label for="connectorAnimationInput">Connector Animation</label>
+              <select id="connectorAnimationInput">
+                <option value="none">None</option>
+                <option value="draw">Connector Draw</option>
+                <option value="fade">Fade</option>
+                <option value="flow">Flow Pulse</option>
+              </select>
+            </div>
+          </div>
         </div>
       </details>
 
@@ -215,15 +255,6 @@
                 <option value="fade">Fade</option>
                 <option value="slide">Slide</option>
                 <option value="pop">Pop</option>
-              </select>
-            </div>
-            <div class="field-stack compact">
-              <label for="connectorAnimationInput">Connector Animation</label>
-              <select id="connectorAnimationInput">
-                <option value="none">None</option>
-                <option value="draw">Connector Draw</option>
-                <option value="fade">Fade</option>
-                <option value="flow">Flow Pulse</option>
               </select>
             </div>
           </div>
@@ -314,38 +345,6 @@
               <input id="ambientGlowInput" type="checkbox" />
               Ambient Glow
             </label>
-          </div>
-        </details>
-
-        <details class="control-dropdown">
-          <summary>Connector Studio</summary>
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="connectorVisualStyleInput">Line Personality</label>
-              <select id="connectorVisualStyleInput">
-                <option value="default">Default</option>
-                <option value="sharp">Sharp</option>
-                <option value="rounded">Rounded</option>
-                <option value="organic">Organic</option>
-                <option value="technical">Technical</option>
-                <option value="hand-drawn">Hand Drawn</option>
-                <option value="double">Double Line</option>
-                <option value="dotted">Dotted</option>
-                <option value="segmented">Segmented</option>
-                <option value="tapered">Tapered</option>
-              </select>
-            </div>
-            <div class="field-stack compact">
-              <label for="connectorDecorationInput">Decorations</label>
-              <select id="connectorDecorationInput">
-                <option value="none">None</option>
-                <option value="arrowheads">Arrowheads</option>
-                <option value="dots">Dots</option>
-                <option value="junctions">Junction Nodes</option>
-                <option value="labels">Labels</option>
-                <option value="status">Status Indicators</option>
-              </select>
-            </div>
           </div>
         </details>
 
