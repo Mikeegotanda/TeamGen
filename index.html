@@ -310,6 +310,32 @@
             <label for="cardHeightScaleInput">Card Height</label>
             <input id="cardHeightScaleInput" type="range" min="45" max="130" />
           </div>
+          <p class="section-title">Entrance Animation</p>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="cardEntranceAnimationInput">Card Entrance</label>
+              <select id="cardEntranceAnimationInput">
+                <option value="none">None</option>
+                <option value="cascade">Cascade</option>
+                <option value="tree-grow">Tree Grow</option>
+                <option value="fade">Fade</option>
+                <option value="slide">Slide</option>
+                <option value="pop">Pop</option>
+                <option value="zoom">Zoom In</option>
+                <option value="flip">Flip Up</option>
+                <option value="bounce">Bounce In</option>
+                <option value="rise">Rise In</option>
+              </select>
+            </div>
+            <div class="field-stack compact">
+              <label for="animationSpeedInput">Animation Speed</label>
+              <select id="animationSpeedInput">
+                <option value="fast">Fast</option>
+                <option value="normal">Normal</option>
+                <option value="slow">Slow</option>
+              </select>
+            </div>
+          </div>
           <p class="section-title">Card & Avatar Studio</p>
           <div class="grid-2">
             <div class="field-stack compact">
@@ -416,33 +442,6 @@
                 <option value="flow">Flow Pulse</option>
               </select>
             </div>
-          </div>
-        </div>
-      </details>
-
-      <details class="control-dropdown">
-        <summary>Animations</summary>
-        <div class="control-section">
-          <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="cardEntranceAnimationInput">Card Entrance</label>
-              <select id="cardEntranceAnimationInput">
-                <option value="none">None</option>
-                <option value="cascade">Cascade</option>
-                <option value="tree-grow">Tree Grow</option>
-                <option value="fade">Fade</option>
-                <option value="slide">Slide</option>
-                <option value="pop">Pop</option>
-              </select>
-            </div>
-          </div>
-          <div class="field-stack compact">
-            <label for="animationSpeedInput">Animation Speed</label>
-            <select id="animationSpeedInput">
-              <option value="fast">Fast</option>
-              <option value="normal">Normal</option>
-              <option value="slow">Slow</option>
-            </select>
           </div>
         </div>
       </details>

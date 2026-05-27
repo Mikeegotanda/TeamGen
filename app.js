@@ -1275,6 +1275,18 @@ function cardAnimationClass() {
   if (style === 'pop') {
     return 'anim-card-pop';
   }
+  if (style === 'zoom') {
+    return 'anim-card-zoom';
+  }
+  if (style === 'flip') {
+    return 'anim-card-flip';
+  }
+  if (style === 'bounce') {
+    return 'anim-card-bounce';
+  }
+  if (style === 'rise') {
+    return 'anim-card-rise';
+  }
   return '';
 }
 
@@ -1306,6 +1318,18 @@ function cardAnimationDelay(layout, timings) {
   }
   if (state.settings.cardEntranceAnimation === 'fade') {
     return (rowIndex + columnIndex) * Math.round(timings.stepDelay * 0.45);
+  }
+  if (state.settings.cardEntranceAnimation === 'zoom') {
+    return (rowIndex + columnIndex) * Math.round(timings.stepDelay * 0.5);
+  }
+  if (state.settings.cardEntranceAnimation === 'flip') {
+    return (rowIndex * 2 + columnIndex) * Math.round(timings.stepDelay * 0.7);
+  }
+  if (state.settings.cardEntranceAnimation === 'bounce') {
+    return (rowIndex + columnIndex) * Math.round(timings.stepDelay * 0.55);
+  }
+  if (state.settings.cardEntranceAnimation === 'rise') {
+    return (rowIndex + columnIndex) * Math.round(timings.stepDelay * 0.62);
   }
   return 0;
 }
