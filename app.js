@@ -47,7 +47,6 @@ const PRESETS = {
     layoutMode: 'symmetrical',
     formalOrganic: 20,
     symmetryDynamic: 18,
-    structureFreeform: 14,
     shadowIntensity: 100,
     blurStrength: 10,
     backgroundDepth: 0,
@@ -106,7 +105,6 @@ const PRESETS = {
     layoutMode: 'symmetrical',
     formalOrganic: 20,
     symmetryDynamic: 18,
-    structureFreeform: 14,
     shadowIntensity: 100,
     blurStrength: 10,
     backgroundDepth: 0,
@@ -165,7 +163,6 @@ const PRESETS = {
     layoutMode: 'symmetrical',
     formalOrganic: 24,
     symmetryDynamic: 22,
-    structureFreeform: 18,
     shadowIntensity: 112,
     blurStrength: 10,
     backgroundDepth: 0,
@@ -224,7 +221,6 @@ const PRESETS = {
     layoutMode: 'symmetrical',
     formalOrganic: 28,
     symmetryDynamic: 32,
-    structureFreeform: 30,
     shadowIntensity: 78,
     blurStrength: 6,
     backgroundDepth: 0,
@@ -319,7 +315,6 @@ const dom = {
   animationSpeedInput: document.getElementById('animationSpeedInput'),
   layoutModeInput: document.getElementById('layoutModeInput'),
   symmetryDynamicInput: document.getElementById('symmetryDynamicInput'),
-  structureFreeformInput: document.getElementById('structureFreeformInput'),
   shadowIntensityInput: document.getElementById('shadowIntensityInput'),
   blurStrengthInput: document.getElementById('blurStrengthInput'),
   backgroundDepthInput: document.getElementById('backgroundDepthInput'),
@@ -1096,7 +1091,6 @@ function rowLayouts() {
 
   const mode = state.settings.layoutMode === 'swimlane' ? 'swimlane' : 'symmetrical';
   const dynamicAmount = clamp(Number(state.settings.symmetryDynamic || 0) / 100, 0, 1);
-  const freeformAmount = clamp(Number(state.settings.structureFreeform || 0) / 100, 0, 1);
   const centerX = (metrics.left + metrics.right) / 2;
   const centerY = (metrics.top + metrics.bottom) / 2;
   const rowCount = Math.max(1, state.rows.length);
@@ -1123,7 +1117,7 @@ function rowLayouts() {
       layout.x = layout.xCenter - layout.width / 2;
     }
 
-    const freeShift = (hashToUnit(`${nodeId}-free`) - 0.5) * 34 * freeformAmount * 0.6;
+    const freeShift = (hashToUnit(`${nodeId}-free`) - 0.5) * 7;
     if (mode === 'swimlane') {
       layout.x += freeShift;
       layout.xCenter += freeShift;
@@ -1829,7 +1823,6 @@ function syncControls() {
   dom.animationSpeedInput.value = state.settings.animationSpeed || 'normal';
   dom.layoutModeInput.value = state.settings.layoutMode || 'symmetrical';
   dom.symmetryDynamicInput.value = String(state.settings.symmetryDynamic ?? 18);
-  dom.structureFreeformInput.value = String(state.settings.structureFreeform ?? 14);
   dom.shadowIntensityInput.value = String(state.settings.shadowIntensity ?? 100);
   dom.blurStrengthInput.value = String(state.settings.blurStrength ?? 10);
   dom.backgroundDepthInput.value = String(state.settings.backgroundDepth ?? 24);
@@ -1954,11 +1947,6 @@ function bindControlEvents() {
 
   dom.symmetryDynamicInput.addEventListener('input', () => {
     state.settings.symmetryDynamic = Number(dom.symmetryDynamicInput.value);
-    render();
-  });
-
-  dom.structureFreeformInput.addEventListener('input', () => {
-    state.settings.structureFreeform = Number(dom.structureFreeformInput.value);
     render();
   });
 
