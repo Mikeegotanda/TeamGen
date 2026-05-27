@@ -286,25 +286,10 @@ body {
 .slide-header {
   height: 112px;
   display: grid;
-  grid-template-columns: 270px 1fr 130px;
+  grid-template-columns: 1fr 130px;
   align-items: center;
   padding: 0 0 0 0;
   position: relative;
-}
-
-.brand-tag {
-  width: 290px;
-  height: 112px;
-  background: linear-gradient(118deg, var(--brand-red-deep) 0%, #cc122f 60%, #df3a52 60.2%, #ec6f82 100%);
-  clip-path: polygon(0 0, 83% 0, 97% 0, 75% 100%, 0 100%);
-  display: flex;
-  align-items: center;
-  padding-left: 84px;
-  color: #fff;
-  font-family: "Sora", sans-serif;
-  font-size: 64px;
-  line-height: 1;
-  letter-spacing: 0.02em;
 }
 
 .slide-title {
