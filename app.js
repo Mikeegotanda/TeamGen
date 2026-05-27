@@ -49,7 +49,19 @@ const PRESETS = {
     roleSize: 11,
     nameBold: true,
     cardStyle: 'classic',
-    bgImage: ''
+    bgImage: '',
+    themePreset: 'corporate',
+    hierarchyDirection: 'top-down',
+    nodeSpacing: 'balanced',
+    connectorStyle: 'orthogonal',
+    connectorType: 'solid',
+    connectorWeight: 'medium',
+    cardShape: 'rounded',
+    cardLayout: 'avatar-left',
+    avatarStyle: 'rounded',
+    cardElevation: 'soft',
+    infoVisibility: 'name-role',
+    backgroundStyle: 'plain'
   },
   construction: {
     type: 'construction',
@@ -72,7 +84,19 @@ const PRESETS = {
     roleSize: 11,
     nameBold: true,
     cardStyle: 'classic',
-    bgImage: ''
+    bgImage: '',
+    themePreset: 'corporate',
+    hierarchyDirection: 'top-down',
+    nodeSpacing: 'balanced',
+    connectorStyle: 'orthogonal',
+    connectorType: 'solid',
+    connectorWeight: 'medium',
+    cardShape: 'rounded',
+    cardLayout: 'avatar-left',
+    avatarStyle: 'rounded',
+    cardElevation: 'soft',
+    infoVisibility: 'name-role',
+    backgroundStyle: 'plain'
   },
   corporate: {
     type: 'corporate',
@@ -95,7 +119,19 @@ const PRESETS = {
     roleSize: 11,
     nameBold: true,
     cardStyle: 'pill',
-    bgImage: ''
+    bgImage: '',
+    themePreset: 'corporate',
+    hierarchyDirection: 'top-down',
+    nodeSpacing: 'balanced',
+    connectorStyle: 'orthogonal',
+    connectorType: 'solid',
+    connectorWeight: 'medium',
+    cardShape: 'pill',
+    cardLayout: 'avatar-left',
+    avatarStyle: 'circle',
+    cardElevation: 'soft',
+    infoVisibility: 'name-role',
+    backgroundStyle: 'plain'
   },
   introduction: {
     type: 'introduction',
@@ -118,7 +154,19 @@ const PRESETS = {
     roleSize: 11,
     nameBold: true,
     cardStyle: 'intro',
-    bgImage: ''
+    bgImage: '',
+    themePreset: 'minimal',
+    hierarchyDirection: 'top-down',
+    nodeSpacing: 'balanced',
+    connectorStyle: 'orthogonal',
+    connectorType: 'solid',
+    connectorWeight: 'medium',
+    cardShape: 'soft',
+    cardLayout: 'avatar-top',
+    avatarStyle: 'rounded',
+    cardElevation: 'flat',
+    infoVisibility: 'name-role',
+    backgroundStyle: 'plain'
   }
 };
 
@@ -156,6 +204,12 @@ const dom = {
   slide: document.getElementById('slidePreview'),
   slideHeader: document.getElementById('slideHeader'),
   slideTitle: document.getElementById('slideTitle'),
+  themePresetInput: document.getElementById('themePresetInput'),
+  hierarchyDirectionInput: document.getElementById('hierarchyDirectionInput'),
+  nodeSpacingInput: document.getElementById('nodeSpacingInput'),
+  connectorStyleInput: document.getElementById('connectorStyleInput'),
+  connectorTypeInput: document.getElementById('connectorTypeInput'),
+  connectorWeightInput: document.getElementById('connectorWeightInput'),
   bgColorInput: document.getElementById('bgColorInput'),
   accentColorInput: document.getElementById('accentColorInput'),
   headingColorInput: document.getElementById('headingColorInput'),
@@ -169,6 +223,12 @@ const dom = {
   cardShadowInput: document.getElementById('cardShadowInput'),
   cardOutlineInput: document.getElementById('cardOutlineInput'),
   cardRadiusInput: document.getElementById('cardRadiusInput'),
+  cardShapeInput: document.getElementById('cardShapeInput'),
+  cardLayoutInput: document.getElementById('cardLayoutInput'),
+  avatarStyleInput: document.getElementById('avatarStyleInput'),
+  cardElevationInput: document.getElementById('cardElevationInput'),
+  infoVisibilityInput: document.getElementById('infoVisibilityInput'),
+  backgroundStyleInput: document.getElementById('backgroundStyleInput'),
   backgroundImageInput: document.getElementById('backgroundImageInput'),
   autoConnectToggle: document.getElementById('autoConnectToggle'),
   clearCanvasBtn: document.getElementById('clearCanvasBtn'),
@@ -206,13 +266,36 @@ function getMemberById(memberId) {
 }
 
 function currentCardSize() {
+  let width = 300;
+  let height = 102;
+
   if (state.settings.cardStyle === 'pill') {
-    return { width: 470, height: 110 };
+    width = 470;
+    height = 110;
+  } else if (state.settings.cardStyle === 'intro') {
+    width = 226;
+    height = 312;
   }
-  if (state.settings.cardStyle === 'intro') {
-    return { width: 226, height: 312 };
+
+  if (state.settings.cardLayout === 'avatar-top') {
+    width = Math.max(width, 260);
+    height = Math.max(height, 180);
+  } else if (state.settings.cardLayout === 'compact') {
+    width = Math.max(220, Math.floor(width * 0.88));
+    height = Math.max(82, Math.floor(height * 0.84));
   }
-  return { width: 300, height: 102 };
+
+  return { width, height };
+}
+
+function getSpacingScale() {
+  if (state.settings.nodeSpacing === 'compact') {
+    return 0.72;
+  }
+  if (state.settings.nodeSpacing === 'spacious') {
+    return 1.28;
+  }
+  return 1;
 }
 
 function getBodyMetrics() {
@@ -221,9 +304,10 @@ function getBodyMetrics() {
   const bodyHeight = dom.cardLayer.clientHeight || 560;
   const halfWidth = cardSize.width / 2;
   const halfHeight = cardSize.height / 2;
-  const sidePadding = state.settings.cardStyle === 'pill' ? 34 : 24;
-  const topPadding = state.settings.cardStyle === 'intro' ? 24 : 16;
-  const bottomPadding = state.settings.cardStyle === 'intro' ? 30 : 18;
+  const spacing = getSpacingScale();
+  const sidePadding = (state.settings.cardStyle === 'pill' ? 34 : 24) * spacing;
+  const topPadding = (state.settings.cardStyle === 'intro' ? 24 : 16) * spacing;
+  const bottomPadding = (state.settings.cardStyle === 'intro' ? 30 : 18) * spacing;
   const left = halfWidth + sidePadding;
   const right = bodyWidth - halfWidth - sidePadding;
   const top = halfHeight + topPadding;
@@ -249,6 +333,15 @@ function computeRowY(index, count) {
   return metrics.top + (span / (count - 1)) * index;
 }
 
+function computeRowYFromDirection(index, count) {
+  const y = computeRowY(index, count);
+  if (state.settings.hierarchyDirection === 'bottom-up') {
+    const metrics = getBodyMetrics();
+    return metrics.top + metrics.bottom - y;
+  }
+  return y;
+}
+
 function computeRowCenters(rowLength) {
   const metrics = getBodyMetrics();
   if (rowLength === 1) {
@@ -259,16 +352,26 @@ function computeRowCenters(rowLength) {
   return Array.from({ length: rowLength }, (_, index) => metrics.left + index * step);
 }
 
-function findRowForY(y) {
+function findRowForPrimaryAxis(primaryPoint) {
   if (state.rows.length === 0) {
     return { index: 0, create: true };
   }
-  const rowCenters = state.rows.map((_, rowIndex) => computeRowY(rowIndex, state.rows.length));
+  const rowCenters = state.rows.map((_, rowIndex) => {
+    if (state.settings.hierarchyDirection === 'left-right') {
+      const metrics = getBodyMetrics();
+      if (state.rows.length <= 1) {
+        return (metrics.left + metrics.right) / 2;
+      }
+      const span = metrics.right - metrics.left;
+      return metrics.left + (span / (state.rows.length - 1)) * rowIndex;
+    }
+    return computeRowYFromDirection(rowIndex, state.rows.length);
+  });
   let nearestIndex = 0;
   let nearestDistance = Number.POSITIVE_INFINITY;
 
-  rowCenters.forEach((centerY, index) => {
-    const distance = Math.abs(centerY - y);
+  rowCenters.forEach((centerValue, index) => {
+    const distance = Math.abs(centerValue - primaryPoint);
     if (distance < nearestDistance) {
       nearestDistance = distance;
       nearestIndex = index;
@@ -281,7 +384,7 @@ function findRowForY(y) {
 
   let insertIndex = state.rows.length;
   for (let i = 0; i < rowCenters.length; i += 1) {
-    if (y < rowCenters[i]) {
+    if (primaryPoint < rowCenters[i]) {
       insertIndex = i;
       break;
     }
@@ -289,20 +392,31 @@ function findRowForY(y) {
   return { index: insertIndex, create: true };
 }
 
-function insertNodeIntoRow(row, nodeId, x) {
+function insertNodeIntoRow(row, nodeId, secondaryPoint) {
   if (row.length === 0) {
     row.push(nodeId);
     return;
   }
 
-  const centers = computeRowCenters(row.length);
+  const centers =
+    state.settings.hierarchyDirection === 'left-right'
+      ? (() => {
+          const metrics = getBodyMetrics();
+          if (row.length === 1) {
+            return [(metrics.top + metrics.bottom) / 2];
+          }
+          const span = metrics.bottom - metrics.top;
+          const step = span / Math.max(1, row.length - 1);
+          return Array.from({ length: row.length }, (_, index) => metrics.top + index * step);
+        })()
+      : computeRowCenters(row.length);
   const sortable = row
     .map((id, index) => ({ id, center: centers[index] }))
     .sort((a, b) => a.center - b.center);
 
   let insertPosition = sortable.length;
   for (let i = 0; i < sortable.length; i += 1) {
-    if (x < sortable[i].center) {
+    if (secondaryPoint < sortable[i].center) {
       insertPosition = i;
       break;
     }
@@ -313,13 +427,14 @@ function insertNodeIntoRow(row, nodeId, x) {
 
 function placeNodeAtPoint(nodeId, x, y) {
   removeNodeFromRows(nodeId);
-
-  const target = findRowForY(y);
+  const primary = state.settings.hierarchyDirection === 'left-right' ? x : y;
+  const secondary = state.settings.hierarchyDirection === 'left-right' ? y : x;
+  const target = findRowForPrimaryAxis(primary);
   if (target.create) {
     state.rows.splice(target.index, 0, []);
   }
 
-  insertNodeIntoRow(state.rows[target.index], nodeId, x);
+  insertNodeIntoRow(state.rows[target.index], nodeId, secondary);
   compactRows();
   render();
 }
@@ -418,42 +533,54 @@ function escapeHtml(value) {
 
 function cardTemplate(member, xCenter) {
   const isRight = xCenter > 640;
-  if (state.settings.cardStyle === 'pill') {
+  const showAvatar = state.settings.avatarStyle !== 'hidden';
+  const layout = state.settings.cardLayout;
+  const compact = layout === 'compact';
+
+  const avatarRadiusMap = {
+    circle: '50%',
+    square: '4px',
+    rounded: '12px',
+    hidden: '0'
+  };
+  const avatarRadius = avatarRadiusMap[state.settings.avatarStyle] || '12px';
+  const avatarSize = compact ? 56 : 78;
+
+  const showRole = state.settings.infoVisibility !== 'name-only';
+  const showDept = state.settings.infoVisibility === 'name-role-dept';
+
+  const copyBlock = `
+    <div class="card-copy" style="text-align:${layout === 'avatar-top' ? 'center' : isRight && state.settings.cardStyle === 'pill' ? 'right' : 'left'};">
+      <div class="card-name">${escapeHtml(member.name)}</div>
+      ${showRole ? `<div class="card-role">${escapeHtml(member.title)}</div>` : ''}
+      ${showDept ? `<div class="card-role" style="font-size:0.86em;opacity:0.78;">${escapeHtml(member.department || '')}</div>` : ''}
+    </div>
+  `;
+
+  if (layout === 'avatar-top') {
     return `
-      <div class="card-main" style="grid-template-columns:${isRight ? '1fr 88px' : '88px 1fr'};padding:${isRight ? '10px 12px 10px 14px' : '10px 14px 10px 12px'};">
-        <img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:86px;height:86px;border-radius:50%;order:${isRight ? '2' : '0'};border:3px solid #f2dce0;" />
-        <div class="card-copy" style="text-align:${isRight ? 'right' : 'left'};order:${isRight ? '1' : '0'};">
-          <div class="card-name">${escapeHtml(member.name)}</div>
-          <div class="card-role">${escapeHtml(member.title)}</div>
-        </div>
+      <div class="card-accent"></div>
+      <div class="card-main" style="grid-template-columns:1fr;justify-items:center;gap:${compact ? '6px' : '10px'};padding:${compact ? '10px' : '12px'};">
+        ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${avatarSize}px;height:${avatarSize}px;border-radius:${avatarRadius};" />` : ''}
+        ${copyBlock}
       </div>
     `;
   }
 
-  if (state.settings.cardStyle === 'intro') {
+  if (state.settings.cardStyle === 'pill') {
     return `
-      <div class="card-main" style="grid-template-columns:1fr;gap:8px;justify-items:center;padding:14px;align-content:start;">
-        <div style="width:44px;height:5px;border-radius:99px;background:#ababab;"></div>
-        <div style="position:relative;width:128px;height:128px;">
-          <div style="position:absolute;inset:6px;transform:rotate(-11deg);border-radius:12px;background:${state.settings.accentColor};"></div>
-          <img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="position:absolute;inset:0;margin:auto;width:120px;height:120px;border-radius:16px;border:0;" />
-        </div>
-        <div class="card-copy" style="text-align:center;">
-          <div class="card-name">${escapeHtml(member.name)}</div>
-          <div class="card-role">${escapeHtml(member.title)}</div>
-        </div>
+      <div class="card-main" style="grid-template-columns:${showAvatar ? (isRight ? `${compact ? '1fr 64px' : '1fr 88px'}` : `${compact ? '64px 1fr' : '88px 1fr'}`) : '1fr'};padding:${isRight ? '10px 12px 10px 14px' : '10px 14px 10px 12px'};gap:${compact ? '10px' : '14px'};">
+        ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${compact ? 64 : 86}px;height:${compact ? 64 : 86}px;border-radius:${state.settings.avatarStyle === 'circle' ? '50%' : avatarRadius};order:${isRight ? '2' : '0'};border:3px solid #f2dce0;" />` : ''}
+        ${copyBlock}
       </div>
     `;
   }
 
   return `
     <div class="card-accent"></div>
-    <div class="card-main">
-      <img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" />
-      <div class="card-copy">
-        <div class="card-name">${escapeHtml(member.name)}</div>
-        <div class="card-role">${escapeHtml(member.title)}</div>
-      </div>
+    <div class="card-main" style="grid-template-columns:${showAvatar ? `${compact ? 58 : 78}px 1fr` : '1fr'};gap:${compact ? '10px' : '14px'};padding:${compact ? '10px' : '12px'};">
+      ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${compact ? 58 : 78}px;height:${compact ? 58 : 64}px;border-radius:${avatarRadius};" />` : ''}
+      ${copyBlock}
     </div>
   `;
 }
@@ -461,9 +588,32 @@ function cardTemplate(member, xCenter) {
 function rowLayouts() {
   const layouts = {};
   const cardSize = currentCardSize();
+  const metrics = getBodyMetrics();
 
   state.rows.forEach((row, rowIndex) => {
-    const yCenter = computeRowY(rowIndex, state.rows.length);
+    if (state.settings.hierarchyDirection === 'left-right') {
+      const xCenter =
+        state.rows.length <= 1
+          ? (metrics.left + metrics.right) / 2
+          : metrics.left + ((metrics.right - metrics.left) / (state.rows.length - 1)) * rowIndex;
+      const yCenters =
+        row.length <= 1
+          ? [(metrics.top + metrics.bottom) / 2]
+          : Array.from({ length: row.length }, (_, index) => metrics.top + ((metrics.bottom - metrics.top) / (row.length - 1)) * index);
+      row.forEach((nodeId, columnIndex) => {
+        layouts[nodeId] = {
+          xCenter,
+          yCenter: yCenters[columnIndex],
+          x: xCenter - cardSize.width / 2,
+          y: yCenters[columnIndex] - cardSize.height / 2,
+          width: cardSize.width,
+          height: cardSize.height
+        };
+      });
+      return;
+    }
+
+    const yCenter = computeRowYFromDirection(rowIndex, state.rows.length);
     const xCenters = computeRowCenters(row.length);
     row.forEach((nodeId, columnIndex) => {
       layouts[nodeId] = {
@@ -480,11 +630,38 @@ function rowLayouts() {
   return layouts;
 }
 
+function getCardRadiusFromShape() {
+  if (state.settings.cardShape === 'square') {
+    return 4;
+  }
+  if (state.settings.cardShape === 'pill') {
+    return 999;
+  }
+  if (state.settings.cardShape === 'soft') {
+    return 18;
+  }
+  return state.settings.cardRadius;
+}
+
+function getCardShadowFromElevation() {
+  if (state.settings.cardElevation === 'flat') {
+    return 'none';
+  }
+  if (state.settings.cardElevation === 'floating') {
+    return '0 18px 34px rgba(18, 32, 50, 0.24)';
+  }
+  if (state.settings.cardElevation === 'glass') {
+    return '0 12px 24px rgba(18, 32, 50, 0.2), inset 0 1px 0 rgba(255,255,255,0.72)';
+  }
+  return state.settings.showShadow ? 'var(--shadow-soft)' : 'none';
+}
+
 function renderCards(layouts) {
   const cardBorder = state.settings.showOutline
     ? `${state.settings.outlineWidth}px solid ${state.settings.outlineColor}`
     : '0px solid transparent';
-  const cardShadow = state.settings.showShadow ? 'var(--shadow-soft)' : 'none';
+  const cardShadow = getCardShadowFromElevation();
+  const cardRadius = getCardRadiusFromShape();
 
   dom.cardLayer.innerHTML = Object.entries(layouts)
     .map(([nodeId, layout]) => {
@@ -502,7 +679,9 @@ function renderCards(layouts) {
         `height:${layout.height}px`,
         `border:${cardBorder}`,
         `box-shadow:${cardShadow}`,
-        `border-radius:${state.settings.cardRadius}px`
+        `border-radius:${cardRadius}px`,
+        state.settings.cardElevation === 'glass' ? 'backdrop-filter: blur(10px) saturate(125%)' : '',
+        state.settings.cardElevation === 'glass' ? 'background: rgba(255,255,255,0.58)' : ''
       ].join(';');
 
       return `
@@ -577,11 +756,64 @@ function onCardClick(nodeId) {
   render();
 }
 
+function getConnectorAnchors(fromLayout, toLayout) {
+  if (state.settings.hierarchyDirection === 'left-right') {
+    const fromIsLeft = fromLayout.xCenter <= toLayout.xCenter;
+    return {
+      fromX: fromIsLeft ? fromLayout.x + fromLayout.width : fromLayout.x,
+      fromY: fromLayout.yCenter,
+      toX: fromIsLeft ? toLayout.x : toLayout.x + toLayout.width,
+      toY: toLayout.yCenter
+    };
+  }
+
+  if (state.settings.hierarchyDirection === 'bottom-up') {
+    return {
+      fromX: fromLayout.xCenter,
+      fromY: fromLayout.y,
+      toX: toLayout.xCenter,
+      toY: toLayout.y + toLayout.height
+    };
+  }
+
+  return {
+    fromX: fromLayout.xCenter,
+    fromY: fromLayout.y + fromLayout.height,
+    toX: toLayout.xCenter,
+    toY: toLayout.y
+  };
+}
+
 function pathBetweenCards(fromLayout, toLayout) {
-  const fromX = fromLayout.xCenter;
-  const fromY = fromLayout.y + fromLayout.height;
-  const toX = toLayout.xCenter;
-  const toY = toLayout.y;
+  const { fromX, fromY, toX, toY } = getConnectorAnchors(fromLayout, toLayout);
+  const style = state.settings.connectorStyle;
+
+  if (style === 'straight') {
+    return `M ${fromX} ${fromY} L ${toX} ${toY}`;
+  }
+
+  if (style === 'curved') {
+    if (state.settings.hierarchyDirection === 'left-right') {
+      const midX = fromX + (toX - fromX) * 0.5;
+      return `M ${fromX} ${fromY} C ${midX} ${fromY}, ${midX} ${toY}, ${toX} ${toY}`;
+    }
+    const midY = fromY + (toY - fromY) * 0.5;
+    return `M ${fromX} ${fromY} C ${fromX} ${midY}, ${toX} ${midY}, ${toX} ${toY}`;
+  }
+
+  if (style === 'stepped') {
+    if (state.settings.hierarchyDirection === 'left-right') {
+      const stepX = fromX + (toX - fromX) * 0.35;
+      return `M ${fromX} ${fromY} L ${stepX} ${fromY} L ${stepX} ${toY} L ${toX} ${toY}`;
+    }
+    const stepY = fromY + (toY - fromY) * 0.35;
+    return `M ${fromX} ${fromY} L ${fromX} ${stepY} L ${toX} ${stepY} L ${toX} ${toY}`;
+  }
+
+  if (state.settings.hierarchyDirection === 'left-right') {
+    const midX = fromX + (toX - fromX) / 2;
+    return `M ${fromX} ${fromY} L ${midX} ${fromY} L ${midX} ${toY} L ${toX} ${toY}`;
+  }
   const midY = fromY + (toY - fromY) / 2;
   return `M ${fromX} ${fromY} L ${fromX} ${midY} L ${toX} ${midY} L ${toX} ${toY}`;
 }
@@ -613,13 +845,16 @@ function autoLinkPairs(layouts) {
 
 function renderConnectors(layouts) {
   const paths = [];
+  const weightMap = { thin: 2, medium: 4, bold: 7 };
+  const strokeWidth = weightMap[state.settings.connectorWeight] || 4;
+  const dash = state.settings.connectorType === 'dashed' ? 'stroke-dasharray="9 7"' : '';
 
   if (state.autoConnect) {
     autoLinkPairs(layouts).forEach((link) => {
       const fromLayout = layouts[link.from];
       const toLayout = layouts[link.to];
       if (fromLayout && toLayout) {
-        paths.push(`<path d="${pathBetweenCards(fromLayout, toLayout)}" class="connector-line" opacity="0.8"></path>`);
+        paths.push(`<path d="${pathBetweenCards(fromLayout, toLayout)}" class="connector-line" opacity="0.8" stroke-width="${strokeWidth}" ${dash}></path>`);
       }
     });
   }
@@ -630,7 +865,7 @@ function renderConnectors(layouts) {
     if (!fromLayout || !toLayout) {
       return;
     }
-    paths.push(`<path d="${pathBetweenCards(fromLayout, toLayout)}" class="connector-line" stroke="${state.settings.accentColor}" stroke-width="5"></path>`);
+    paths.push(`<path d="${pathBetweenCards(fromLayout, toLayout)}" class="connector-line" stroke="${state.settings.accentColor}" stroke-width="${Math.max(strokeWidth + 1, 4)}" ${dash}></path>`);
   });
 
   dom.connectorLayer.innerHTML = paths.join('');
@@ -642,6 +877,74 @@ function updateHeaderHeight() {
   dom.slide.style.setProperty('--header-height', `${headerHeight}px`);
 }
 
+function slideBackgroundFromStyle() {
+  const bg = state.settings.bgColor;
+  if (state.settings.backgroundStyle === 'gradient') {
+    return `linear-gradient(155deg, ${bg} 0%, #dfe8f3 100%)`;
+  }
+  if (state.settings.backgroundStyle === 'grid') {
+    return `linear-gradient(${bg}, ${bg}), linear-gradient(rgba(65,87,115,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(65,87,115,0.14) 1px, transparent 1px)`;
+  }
+  if (state.settings.backgroundStyle === 'blueprint') {
+    return `linear-gradient(#d7e6f8, #d7e6f8), linear-gradient(rgba(34,78,122,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(34,78,122,0.18) 1px, transparent 1px)`;
+  }
+  if (state.settings.backgroundStyle === 'dots') {
+    return `radial-gradient(circle at 1px 1px, rgba(68,90,120,0.3) 1px, transparent 0), linear-gradient(${bg}, ${bg})`;
+  }
+  return bg;
+}
+
+function backgroundSizingFromStyle() {
+  if (state.settings.backgroundStyle === 'grid' || state.settings.backgroundStyle === 'blueprint') {
+    return 'auto, 34px 34px, 34px 34px';
+  }
+  if (state.settings.backgroundStyle === 'dots') {
+    return '16px 16px, auto';
+  }
+  return 'cover';
+}
+
+function applyThemePreset(preset) {
+  if (preset === 'modern') {
+    Object.assign(state.settings, {
+      bgColor: '#edf2f8',
+      accentColor: '#3a7cff',
+      headingColor: '#0f172a',
+      cardBg: '#ffffff',
+      cardTextColor: '#101a2a',
+      cardSubColor: '#3e4a5e'
+    });
+  } else if (preset === 'blueprint') {
+    Object.assign(state.settings, {
+      bgColor: '#d7e6f8',
+      accentColor: '#1f5ea8',
+      headingColor: '#0b2a4e',
+      cardBg: '#f7fbff',
+      cardTextColor: '#0f2d4f',
+      cardSubColor: '#385571',
+      backgroundStyle: 'blueprint'
+    });
+  } else if (preset === 'minimal') {
+    Object.assign(state.settings, {
+      bgColor: '#f1f2f4',
+      accentColor: '#5f6977',
+      headingColor: '#171d26',
+      cardBg: '#ffffff',
+      cardTextColor: '#1a2230',
+      cardSubColor: '#4f5a6a'
+    });
+  } else {
+    Object.assign(state.settings, {
+      bgColor: '#e5e5e5',
+      accentColor: '#2f66c7',
+      headingColor: '#0f131a',
+      cardBg: '#ffffff',
+      cardTextColor: '#101820',
+      cardSubColor: '#263342'
+    });
+  }
+}
+
 function applyStyleToSlide() {
   dom.slide.style.setProperty('--slide-bg', state.settings.bgColor);
   dom.slide.style.setProperty('--slide-accent', state.settings.accentColor);
@@ -651,9 +954,13 @@ function applyStyleToSlide() {
   dom.slide.style.setProperty('--card-subtitle', state.settings.cardSubColor);
   dom.slide.style.setProperty('--card-outline', state.settings.outlineColor);
 
-  dom.slide.style.background = state.settings.bgImage
-    ? `linear-gradient(rgba(255,255,255,0.18), rgba(255,255,255,0.18)), url(${state.settings.bgImage}) center/cover no-repeat`
-    : state.settings.bgColor;
+  if (state.settings.bgImage) {
+    dom.slide.style.background = `linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url(${state.settings.bgImage}) center/cover no-repeat`;
+    dom.slide.style.backgroundSize = 'cover';
+  } else {
+    dom.slide.style.background = slideBackgroundFromStyle();
+    dom.slide.style.backgroundSize = backgroundSizingFromStyle();
+  }
 
   dom.slideTitle.textContent = state.settings.title;
   dom.slideTitle.style.color = state.settings.headingColor;
@@ -715,6 +1022,12 @@ function fileToDataUrl(file) {
 }
 
 function syncControls() {
+  dom.themePresetInput.value = state.settings.themePreset;
+  dom.hierarchyDirectionInput.value = state.settings.hierarchyDirection;
+  dom.nodeSpacingInput.value = state.settings.nodeSpacing;
+  dom.connectorStyleInput.value = state.settings.connectorStyle;
+  dom.connectorTypeInput.value = state.settings.connectorType;
+  dom.connectorWeightInput.value = state.settings.connectorWeight;
   dom.bgColorInput.value = state.settings.bgColor;
   dom.accentColorInput.value = state.settings.accentColor;
   dom.headingColorInput.value = state.settings.headingColor;
@@ -728,6 +1041,12 @@ function syncControls() {
   dom.cardShadowInput.checked = state.settings.showShadow;
   dom.cardOutlineInput.checked = state.settings.showOutline;
   dom.cardRadiusInput.value = String(state.settings.cardRadius);
+  dom.cardShapeInput.value = state.settings.cardShape;
+  dom.cardLayoutInput.value = state.settings.cardLayout;
+  dom.avatarStyleInput.value = state.settings.avatarStyle;
+  dom.cardElevationInput.value = state.settings.cardElevation;
+  dom.infoVisibilityInput.value = state.settings.infoVisibility;
+  dom.backgroundStyleInput.value = state.settings.backgroundStyle;
   dom.autoConnectToggle.checked = state.autoConnect;
 }
 
@@ -750,6 +1069,38 @@ function bindControlEvents() {
   dom.memberSearch.addEventListener('input', renderLibrary);
   dom.memberDepartmentFilter.addEventListener('change', renderLibrary);
   dom.addMemberBtn.addEventListener('click', addMemberFromForm);
+
+  dom.themePresetInput.addEventListener('change', () => {
+    state.settings.themePreset = dom.themePresetInput.value;
+    applyThemePreset(state.settings.themePreset);
+    syncControls();
+    render();
+  });
+
+  dom.hierarchyDirectionInput.addEventListener('change', () => {
+    state.settings.hierarchyDirection = dom.hierarchyDirectionInput.value;
+    render();
+  });
+
+  dom.nodeSpacingInput.addEventListener('change', () => {
+    state.settings.nodeSpacing = dom.nodeSpacingInput.value;
+    render();
+  });
+
+  dom.connectorStyleInput.addEventListener('change', () => {
+    state.settings.connectorStyle = dom.connectorStyleInput.value;
+    render();
+  });
+
+  dom.connectorTypeInput.addEventListener('change', () => {
+    state.settings.connectorType = dom.connectorTypeInput.value;
+    render();
+  });
+
+  dom.connectorWeightInput.addEventListener('change', () => {
+    state.settings.connectorWeight = dom.connectorWeightInput.value;
+    render();
+  });
 
   dom.bgColorInput.addEventListener('input', () => {
     state.settings.bgColor = dom.bgColorInput.value;
@@ -813,6 +1164,36 @@ function bindControlEvents() {
 
   dom.cardRadiusInput.addEventListener('input', () => {
     state.settings.cardRadius = Number(dom.cardRadiusInput.value);
+    render();
+  });
+
+  dom.cardShapeInput.addEventListener('change', () => {
+    state.settings.cardShape = dom.cardShapeInput.value;
+    render();
+  });
+
+  dom.cardLayoutInput.addEventListener('change', () => {
+    state.settings.cardLayout = dom.cardLayoutInput.value;
+    render();
+  });
+
+  dom.avatarStyleInput.addEventListener('change', () => {
+    state.settings.avatarStyle = dom.avatarStyleInput.value;
+    render();
+  });
+
+  dom.cardElevationInput.addEventListener('change', () => {
+    state.settings.cardElevation = dom.cardElevationInput.value;
+    render();
+  });
+
+  dom.infoVisibilityInput.addEventListener('change', () => {
+    state.settings.infoVisibility = dom.infoVisibilityInput.value;
+    render();
+  });
+
+  dom.backgroundStyleInput.addEventListener('change', () => {
+    state.settings.backgroundStyle = dom.backgroundStyleInput.value;
     render();
   });
 

@@ -88,6 +88,77 @@
       </div>
 
       <div class="control-section">
+        <h3 class="section-title">Theme</h3>
+        <div class="field-stack compact">
+          <label for="themePresetInput">Theme Preset</label>
+          <select id="themePresetInput">
+            <option value="corporate">Corporate</option>
+            <option value="modern">Modern SaaS</option>
+            <option value="blueprint">Blueprint</option>
+            <option value="minimal">Minimal</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="control-section">
+        <h3 class="section-title">Layout</h3>
+        <div class="grid-2">
+          <div class="field-stack compact">
+            <label for="hierarchyDirectionInput">Hierarchy Direction</label>
+            <select id="hierarchyDirectionInput">
+              <option value="top-down">Top Down</option>
+              <option value="left-right">Left Right</option>
+              <option value="bottom-up">Bottom Up</option>
+            </select>
+          </div>
+          <div class="field-stack compact">
+            <label for="nodeSpacingInput">Node Spacing</label>
+            <select id="nodeSpacingInput">
+              <option value="compact">Compact</option>
+              <option value="balanced">Balanced</option>
+              <option value="spacious">Spacious</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="control-section">
+        <h3 class="section-title">Connectors</h3>
+        <div class="grid-2">
+          <div class="field-stack compact">
+            <label for="connectorStyleInput">Connector Style</label>
+            <select id="connectorStyleInput">
+              <option value="orthogonal">Orthogonal</option>
+              <option value="straight">Straight</option>
+              <option value="curved">Curved</option>
+              <option value="stepped">Stepped</option>
+            </select>
+          </div>
+          <div class="field-stack compact">
+            <label for="connectorTypeInput">Connector Type</label>
+            <select id="connectorTypeInput">
+              <option value="solid">Solid</option>
+              <option value="dashed">Dashed</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-stack compact">
+          <label for="connectorWeightInput">Connector Weight</label>
+          <select id="connectorWeightInput">
+            <option value="thin">Thin</option>
+            <option value="medium">Medium</option>
+            <option value="bold">Bold</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="control-section">
         <h3 class="section-title">Colors</h3>
         <div class="grid-2">
           <div class="field-stack compact">
@@ -159,6 +230,53 @@
       <div class="control-section">
         <h3 class="section-title">Card Style</h3>
         <div class="grid-2">
+          <div class="field-stack compact">
+            <label for="cardShapeInput">Card Shape</label>
+            <select id="cardShapeInput">
+              <option value="square">Square</option>
+              <option value="rounded">Rounded</option>
+              <option value="soft">Soft Rounded</option>
+              <option value="pill">Pill</option>
+            </select>
+          </div>
+          <div class="field-stack compact">
+            <label for="cardLayoutInput">Card Layout</label>
+            <select id="cardLayoutInput">
+              <option value="avatar-left">Avatar Left</option>
+              <option value="avatar-top">Avatar Top</option>
+              <option value="compact">Compact</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field-stack compact">
+            <label for="avatarStyleInput">Avatar Style</label>
+            <select id="avatarStyleInput">
+              <option value="rounded">Rounded Square</option>
+              <option value="circle">Circle</option>
+              <option value="square">Square</option>
+              <option value="hidden">Hidden</option>
+            </select>
+          </div>
+          <div class="field-stack compact">
+            <label for="cardElevationInput">Card Elevation</label>
+            <select id="cardElevationInput">
+              <option value="flat">Flat</option>
+              <option value="soft">Soft Shadow</option>
+              <option value="floating">Floating</option>
+              <option value="glass">Glass</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-stack compact">
+          <label for="infoVisibilityInput">Information Visibility</label>
+          <select id="infoVisibilityInput">
+            <option value="name-role">Name + Role</option>
+            <option value="name-only">Name Only</option>
+            <option value="name-role-dept">Name + Role + Department</option>
+          </select>
+        </div>
+        <div class="grid-2">
           <label class="check-wrap">
             <input id="cardShadowInput" type="checkbox" checked />
             Card Shadow
@@ -178,6 +296,16 @@
 
       <div class="control-section">
         <h3 class="section-title">Background</h3>
+        <div class="field-stack compact">
+          <label for="backgroundStyleInput">Background Style</label>
+          <select id="backgroundStyleInput">
+            <option value="plain">Plain</option>
+            <option value="gradient">Gradient</option>
+            <option value="grid">Grid</option>
+            <option value="blueprint">Blueprint</option>
+            <option value="dots">Dots</option>
+          </select>
+        </div>
         <div class="field-stack compact">
           <label for="backgroundImageInput">Background Image</label>
           <input id="backgroundImageInput" type="file" accept="image/*" />
