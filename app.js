@@ -872,8 +872,8 @@ function renderConnectors(layouts) {
 }
 
 function updateHeaderHeight() {
-  const measured = dom.slideHeader?.offsetHeight || 112;
-  const headerHeight = Math.max(112, measured + 4);
+  const measured = dom.slideHeader?.offsetHeight || 0;
+  const headerHeight = Math.max(8, measured + 2);
   dom.slide.style.setProperty('--header-height', `${headerHeight}px`);
 }
 
@@ -962,11 +962,13 @@ function applyStyleToSlide() {
     dom.slide.style.backgroundSize = backgroundSizingFromStyle();
   }
 
-  dom.slideTitle.textContent = state.settings.title;
-  dom.slideTitle.style.color = state.settings.headingColor;
-  dom.slideTitle.style.fontSize = `${state.settings.headingSize}px`;
-  dom.slideTitle.style.fontFamily = `${state.settings.headingFont}, sans-serif`;
-  dom.slideTitle.style.fontWeight = state.settings.headingBold ? '800' : '600';
+  if (dom.slideTitle) {
+    dom.slideTitle.textContent = state.settings.title;
+    dom.slideTitle.style.color = state.settings.headingColor;
+    dom.slideTitle.style.fontSize = `${state.settings.headingSize}px`;
+    dom.slideTitle.style.fontFamily = `${state.settings.headingFont}, sans-serif`;
+    dom.slideTitle.style.fontWeight = state.settings.headingBold ? '800' : '600';
+  }
   updateHeaderHeight();
 
   if (state.settings.type === 'introduction') {

@@ -333,11 +333,11 @@ body {
 }
 
 .slide-header {
-  min-height: 112px;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr;
   align-items: center;
-  padding: 8px 0 4px;
+  padding: 0;
   position: relative;
 }
 
