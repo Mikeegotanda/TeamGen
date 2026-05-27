@@ -338,9 +338,11 @@ body {
 }
 
 .connector-line {
+  fill: none;
   stroke: #8d949f;
   stroke-width: 4;
   stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .card-layer {
