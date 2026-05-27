@@ -1825,10 +1825,14 @@ function syncControls() {
   dom.symmetryDynamicInput.value = String(state.settings.symmetryDynamic ?? 18);
   dom.shadowIntensityInput.value = String(state.settings.shadowIntensity ?? 100);
   dom.blurStrengthInput.value = String(state.settings.blurStrength ?? 10);
-  dom.backgroundDepthInput.value = String(state.settings.backgroundDepth ?? 24);
   dom.floatingCardsInput.checked = state.settings.floatingCards !== false;
   dom.parallaxEnabledInput.checked = state.settings.parallaxEnabled === true;
-  dom.parallaxAmountInput.value = String(state.settings.parallaxAmount ?? 8);
+  if (dom.backgroundDepthInput) {
+    dom.backgroundDepthInput.value = String(state.settings.backgroundDepth ?? 24);
+  }
+  if (dom.parallaxAmountInput) {
+    dom.parallaxAmountInput.value = String(state.settings.parallaxAmount ?? 8);
+  }
   dom.ambientGlowInput.checked = state.settings.ambientGlow === true;
   dom.connectorVisualStyleInput.value = state.settings.connectorVisualStyle || 'default';
   dom.connectorDecorationInput.value = state.settings.connectorDecoration || 'none';
@@ -1960,10 +1964,12 @@ function bindControlEvents() {
     render();
   });
 
-  dom.backgroundDepthInput.addEventListener('input', () => {
-    state.settings.backgroundDepth = Number(dom.backgroundDepthInput.value);
-    render();
-  });
+  if (dom.backgroundDepthInput) {
+    dom.backgroundDepthInput.addEventListener('input', () => {
+      state.settings.backgroundDepth = Number(dom.backgroundDepthInput.value);
+      render();
+    });
+  }
 
   dom.floatingCardsInput.addEventListener('change', () => {
     state.settings.floatingCards = dom.floatingCardsInput.checked;
@@ -1979,10 +1985,12 @@ function bindControlEvents() {
     render();
   });
 
-  dom.parallaxAmountInput.addEventListener('input', () => {
-    state.settings.parallaxAmount = Number(dom.parallaxAmountInput.value);
-    render();
-  });
+  if (dom.parallaxAmountInput) {
+    dom.parallaxAmountInput.addEventListener('input', () => {
+      state.settings.parallaxAmount = Number(dom.parallaxAmountInput.value);
+      render();
+    });
+  }
 
   dom.ambientGlowInput.addEventListener('change', () => {
     state.settings.ambientGlow = dom.ambientGlowInput.checked;
