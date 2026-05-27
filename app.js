@@ -26,6 +26,7 @@ const PRESETS = {
     themePreset: 'corporate',
     hierarchyDirection: 'top-down',
     nodeSpacing: 'balanced',
+    canvasRowCount: 'auto',
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
     connectorWeight: 'medium',
@@ -79,6 +80,7 @@ const PRESETS = {
     themePreset: 'corporate',
     hierarchyDirection: 'top-down',
     nodeSpacing: 'balanced',
+    canvasRowCount: 'auto',
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
     connectorWeight: 'medium',
@@ -132,6 +134,7 @@ const PRESETS = {
     themePreset: 'corporate',
     hierarchyDirection: 'top-down',
     nodeSpacing: 'balanced',
+    canvasRowCount: 'auto',
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
     connectorWeight: 'medium',
@@ -185,6 +188,7 @@ const PRESETS = {
     themePreset: 'minimal',
     hierarchyDirection: 'top-down',
     nodeSpacing: 'balanced',
+    canvasRowCount: 'auto',
     connectorStyle: 'orthogonal',
     connectorType: 'solid',
     connectorWeight: 'medium',
@@ -260,6 +264,7 @@ const dom = {
   slideTitle: document.getElementById('slideTitle'),
   hierarchyDirectionInput: document.getElementById('hierarchyDirectionInput'),
   nodeSpacingInput: document.getElementById('nodeSpacingInput'),
+  rowCountInput: document.getElementById('rowCountInput'),
   connectorStyleInput: document.getElementById('connectorStyleInput'),
   connectorTypeInput: document.getElementById('connectorTypeInput'),
   connectorWeightInput: document.getElementById('connectorWeightInput'),
@@ -428,6 +433,24 @@ function computeRowYFromDirection(index, count) {
     return metrics.top + metrics.bottom - y;
   }
   return y;
+}
+
+function getTargetRowCount(actualRowCount) {
+  const configured = Number(state.settings.canvasRowCount);
+  if (!Number.isFinite(configured) || configured <= 0) {
+    return actualRowCount;
+  }
+  return Math.max(actualRowCount, configured);
+}
+
+function mapRowToDisplayIndex(rowIndex, actualRowCount, targetRowCount) {
+  if (actualRowCount <= 1) {
+    return Math.floor((targetRowCount - 1) / 2);
+  }
+  if (targetRowCount <= actualRowCount) {
+    return rowIndex;
+  }
+  return Math.round((rowIndex * (targetRowCount - 1)) / (actualRowCount - 1));
 }
 
 function computeRowCenters(rowLength) {
@@ -857,13 +880,17 @@ function rowLayouts() {
   const layouts = {};
   const cardSize = currentCardSize();
   const metrics = getBodyMetrics();
+  const actualRowCount = state.rows.length;
+  const targetRowCount = getTargetRowCount(actualRowCount);
 
   state.rows.forEach((row, rowIndex) => {
+    const displayRowIndex = mapRowToDisplayIndex(rowIndex, actualRowCount, targetRowCount);
+
     if (state.settings.hierarchyDirection === 'left-right') {
       const xCenter =
-        state.rows.length <= 1
+        targetRowCount <= 1
           ? (metrics.left + metrics.right) / 2
-          : metrics.left + ((metrics.right - metrics.left) / (state.rows.length - 1)) * rowIndex;
+          : metrics.left + ((metrics.right - metrics.left) / (targetRowCount - 1)) * displayRowIndex;
       const yCenters =
         row.length <= 1
           ? [(metrics.top + metrics.bottom) / 2]
@@ -883,7 +910,7 @@ function rowLayouts() {
       return;
     }
 
-    const yCenter = computeRowYFromDirection(rowIndex, state.rows.length);
+    const yCenter = computeRowYFromDirection(displayRowIndex, targetRowCount);
     const xCenters = computeRowCenters(row.length);
     row.forEach((nodeId, columnIndex) => {
       layouts[nodeId] = {
@@ -1605,6 +1632,7 @@ function fileToDataUrl(file) {
 function syncControls() {
   dom.hierarchyDirectionInput.value = state.settings.hierarchyDirection;
   dom.nodeSpacingInput.value = state.settings.nodeSpacing;
+  dom.rowCountInput.value = state.settings.canvasRowCount || 'auto';
   dom.connectorStyleInput.value = state.settings.connectorStyle;
   dom.connectorTypeInput.value = state.settings.connectorType;
   dom.connectorWeightInput.value = state.settings.connectorWeight;
@@ -1681,6 +1709,11 @@ function bindControlEvents() {
 
   dom.nodeSpacingInput.addEventListener('change', () => {
     state.settings.nodeSpacing = dom.nodeSpacingInput.value;
+    render();
+  });
+
+  dom.rowCountInput.addEventListener('change', () => {
+    state.settings.canvasRowCount = dom.rowCountInput.value;
     render();
   });
 
