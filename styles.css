@@ -479,6 +479,32 @@ body {
   transition: transform 220ms ease, box-shadow 220ms ease;
 }
 
+.canvas-card-remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(16, 24, 34, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #1a2430;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: background 160ms ease, transform 160ms ease, border-color 160ms ease;
+}
+
+.canvas-card-remove-btn:hover {
+  background: rgba(248, 98, 98, 0.14);
+  border-color: rgba(191, 42, 42, 0.42);
+  transform: translateY(-1px);
+}
+
 .canvas-card.anim-card-cascade {
   opacity: 0;
   animation: cardCascadeIn var(--enter-duration, 560ms) cubic-bezier(0.18, 0.75, 0.24, 1) var(--enter-delay, 0ms) forwards;

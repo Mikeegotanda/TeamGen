@@ -643,6 +643,22 @@ function clearCanvas() {
   state.selectedCardId = null;
 }
 
+function removeCanvasNode(nodeId) {
+  const node = state.nodes[nodeId];
+  if (!node) {
+    return;
+  }
+  const member = getMemberById(node.memberId);
+  removeNodeFromRows(nodeId);
+  delete state.nodes[nodeId];
+  state.manualLinks = state.manualLinks.filter((link) => link.from !== nodeId && link.to !== nodeId);
+  if (state.selectedCardId === nodeId) {
+    state.selectedCardId = null;
+  }
+  render();
+  notify(member ? `Removed ${member.name} from canvas.` : 'Card removed from canvas.');
+}
+
 function sortedDepartments() {
   const all = new Set(state.members.map((member) => member.department).filter(Boolean));
   return ['All Departments', ...Array.from(all).sort((a, b) => a.localeCompare(b))];
@@ -1264,6 +1280,7 @@ function renderCards(layouts) {
 
       return `
         <article class="canvas-card ${selectedClass}${animationClass}${floatingClass}${visual.extraClass ? ` ${visual.extraClass}` : ''}" data-node-id="${nodeId}" data-card-visual="${state.settings.cardVisualType || 'standard'}" style="${style}">
+          <button class="canvas-card-remove-btn" type="button" data-remove-node-id="${nodeId}" aria-label="Remove ${escapeHtml(member.name)} from canvas">X</button>
           ${cardTemplate(member, layout.xCenter)}
         </article>
       `;
@@ -1279,6 +1296,19 @@ function renderCards(layouts) {
 
     cardElement.addEventListener('pointerdown', (event) => {
       startCardDrag(event, nodeId);
+    });
+  });
+
+  dom.cardLayer.querySelectorAll('.canvas-card-remove-btn').forEach((button) => {
+    button.addEventListener('pointerdown', (event) => {
+      event.stopPropagation();
+    });
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const nodeId = button.dataset.removeNodeId;
+      if (nodeId) {
+        removeCanvasNode(nodeId);
+      }
     });
   });
 
@@ -2130,6 +2160,8 @@ async function capturePngDataUrl(options = {}) {
   const originalBackgroundImage = dom.slide.style.backgroundImage;
   const originalBackgroundSize = dom.slide.style.backgroundSize;
   const originalBoxShadow = dom.slide.style.boxShadow;
+  const removeButtons = Array.from(dom.slide.querySelectorAll('.canvas-card-remove-btn'));
+  const removeButtonDisplays = removeButtons.map((button) => button.style.display);
 
   if (transparent) {
     dom.slide.style.background = 'transparent';
@@ -2137,6 +2169,9 @@ async function capturePngDataUrl(options = {}) {
     dom.slide.style.backgroundSize = 'auto';
     dom.slide.style.boxShadow = 'none';
   }
+  removeButtons.forEach((button) => {
+    button.style.display = 'none';
+  });
 
   try {
     return await window.htmlToImage.toPng(dom.slide, {
@@ -2151,6 +2186,9 @@ async function capturePngDataUrl(options = {}) {
       dom.slide.style.backgroundSize = originalBackgroundSize;
       dom.slide.style.boxShadow = originalBoxShadow;
     }
+    removeButtons.forEach((button, index) => {
+      button.style.display = removeButtonDisplays[index];
+    });
   }
 }
 
@@ -2229,6 +2267,7 @@ function exportHtml() {
   try {
     const clone = dom.slide.cloneNode(true);
     inlineStyles(dom.slide, clone);
+    clone.querySelectorAll('.canvas-card-remove-btn').forEach((button) => button.remove());
 
     const html = `<!doctype html>
 <html>
