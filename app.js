@@ -238,7 +238,9 @@ const PRESETS = {
 const STORAGE_KEY = 'teamgen-state-v2';
 const SAVED_CHARTS_KEY = 'teamgen-saved-charts-v1';
 const TEAM_LIBRARY_KEY = 'teamgen-library-v1';
+const SHARED_LIBRARY_CONFIG_KEY = 'teamgen-shared-library-config-v1';
 const MAX_SAVED_CHARTS = 30;
+const SHARED_LIBRARY_AUTOSAVE_DELAY_MS = 900;
 
 function normalizeSettings(settings) {
   const presetKey = settings?.type && PRESETS[settings.type] ? settings.type : 'preconstruction';
@@ -290,6 +292,12 @@ const dom = {
   removeDepartmentInput: document.getElementById('removeDepartmentInput'),
   removeDepartmentBtn: document.getElementById('removeDepartmentBtn'),
   clearLibraryBtn: document.getElementById('clearLibraryBtn'),
+  sharedLibraryUrlInput: document.getElementById('sharedLibraryUrlInput'),
+  sharedLibraryTokenInput: document.getElementById('sharedLibraryTokenInput'),
+  saveSharedLibraryConfigBtn: document.getElementById('saveSharedLibraryConfigBtn'),
+  loadSharedLibraryNowBtn: document.getElementById('loadSharedLibraryNowBtn'),
+  syncLibraryNowBtn: document.getElementById('syncLibraryNowBtn'),
+  clearSharedLibraryConfigBtn: document.getElementById('clearSharedLibraryConfigBtn'),
   memberFormBox: document.getElementById('memberFormBox'),
   memberFormSummary: document.getElementById('memberFormSummary'),
   newMemberName: document.getElementById('newMemberName'),
@@ -373,6 +381,9 @@ const dom = {
   statusText: document.getElementById('statusText'),
   previewHost: document.getElementById('previewHost')
 };
+
+let sharedLibrarySaveTimer = null;
+let lastSharedLibraryHash = '';
 
 function createAvatar(name, seed = 0) {
   const initials = (name || 'TM')
@@ -995,7 +1006,7 @@ function cardTemplate(member, xCenter) {
   const showDept = state.settings.infoVisibility === 'name-role-dept';
 
   const copyBlock = `
-    <div class="card-copy" style="text-align:${layout === 'avatar-top' ? 'center' : isRight && state.settings.cardStyle === 'pill' ? 'right' : 'left'};">
+    <div class="card-copy" style="text-align:${layout === 'avatar-top' ? 'center' : isRight && state.settings.cardShape === 'pill' ? 'right' : 'left'};">
       <div class="card-name">${escapeHtml(member.name)}</div>
       ${showRole ? `<div class="card-role">${escapeHtml(member.title)}</div>` : ''}
       ${showDept ? `<div class="card-role" style="font-size:0.86em;opacity:0.78;">${escapeHtml(member.department || '')}</div>` : ''}
@@ -1021,7 +1032,7 @@ function cardTemplate(member, xCenter) {
     `;
   }
 
-  if (state.settings.cardStyle === 'pill') {
+  if (state.settings.cardShape === 'pill') {
     return `
       <div class="card-main" style="grid-template-columns:${showAvatar ? (isRight ? `1fr ${scaledW(compact ? 64 : 88, 30)}px` : `${scaledW(compact ? 64 : 88, 30)}px 1fr`) : '1fr'};padding:${scaledH(10, 5)}px ${scaledW(isRight ? 12 : 14, 6)}px ${scaledH(10, 5)}px ${scaledW(isRight ? 14 : 12, 6)}px;gap:${scaledW(compact ? 10 : 14, 5)}px;">
         ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${scaledT(compact ? 64 : 86, 30)}px;height:${scaledT(compact ? 64 : 86, 30)}px;${avatarExtraStyle};order:${isRight ? '2' : '0'};border:${Math.max(1, scaledT(3, 1))}px solid #f2dce0;" />` : ''}
@@ -1148,6 +1159,9 @@ function getCardRadiusFromShape() {
 function getCardShadowFromElevation() {
   const intensity = clamp((Number(state.settings.shadowIntensity) || 100) / 100, 0, 2.2);
   const scale = (value) => Math.round(value * intensity);
+  if (!state.settings.showShadow) {
+    return 'none';
+  }
 
   if (state.settings.cardElevation === 'flat') {
     return 'none';
@@ -1903,6 +1917,56 @@ function bindControlEvents() {
   });
   dom.removeDepartmentBtn.addEventListener('click', removeDepartment);
   dom.clearLibraryBtn.addEventListener('click', clearLibraryMembers);
+  dom.saveSharedLibraryConfigBtn.addEventListener('click', () => {
+    const url = String(dom.sharedLibraryUrlInput?.value || '').trim();
+    const token = String(dom.sharedLibraryTokenInput?.value || '').trim();
+    if (!url) {
+      notify('Shared Library URL is required.');
+      return;
+    }
+    saveSharedLibraryConfig({ url, token });
+    notify('Shared sync config saved.');
+  });
+  dom.clearSharedLibraryConfigBtn.addEventListener('click', () => {
+    saveSharedLibraryConfig(null);
+    syncSharedConfigInputs();
+    notify('Shared sync config cleared.');
+  });
+  dom.loadSharedLibraryNowBtn.addEventListener('click', async () => {
+    const config = readSharedLibraryConfig();
+    if (!config?.url) {
+      notify('Set Shared Library URL first.');
+      return;
+    }
+    try {
+      const sharedMembers = await loadMembersFromSharedLibrary(config);
+      if (!Array.isArray(sharedMembers)) {
+        notify('No shared member list found.');
+        return;
+      }
+      state.members = cloneSnapshotData(sharedMembers);
+      renderLibrary();
+      render();
+      persistState();
+      notify(`Loaded shared library (${sharedMembers.length} members).`);
+    } catch (error) {
+      console.error(error);
+      notify('Unable to load shared library.');
+    }
+  });
+  dom.syncLibraryNowBtn.addEventListener('click', async () => {
+    const config = readSharedLibraryConfig();
+    if (!config?.url) {
+      notify('Set Shared Library URL first.');
+      return;
+    }
+    try {
+      await pushMembersToSharedLibrary(config);
+    } catch (error) {
+      console.error(error);
+      notify('Unable to push shared library.');
+    }
+  });
 
   dom.hierarchyDirectionInput.addEventListener('change', () => {
     state.settings.hierarchyDirection = dom.hierarchyDirectionInput.value;
@@ -2643,6 +2707,129 @@ function cloneSnapshotData(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function memberHash(members) {
+  return JSON.stringify(members || []);
+}
+
+function readSharedLibraryConfig() {
+  try {
+    const raw = localStorage.getItem(SHARED_LIBRARY_CONFIG_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    const url = String(parsed?.url || '').trim();
+    if (!url) {
+      return null;
+    }
+    return {
+      url,
+      token: String(parsed?.token || '')
+    };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+function saveSharedLibraryConfig(config) {
+  const payload = {
+    url: String(config?.url || '').trim(),
+    token: String(config?.token || '').trim()
+  };
+  if (!payload.url) {
+    localStorage.removeItem(SHARED_LIBRARY_CONFIG_KEY);
+    return;
+  }
+  localStorage.setItem(SHARED_LIBRARY_CONFIG_KEY, JSON.stringify(payload));
+}
+
+function syncSharedConfigInputs() {
+  const config = readSharedLibraryConfig();
+  if (dom.sharedLibraryUrlInput) {
+    dom.sharedLibraryUrlInput.value = config?.url || '';
+  }
+  if (dom.sharedLibraryTokenInput) {
+    dom.sharedLibraryTokenInput.value = config?.token || '';
+  }
+}
+
+function buildSharedLibraryHeaders(token) {
+  const headers = { 'Content-Type': 'application/json' };
+  const trimmedToken = String(token || '').trim();
+  if (trimmedToken) {
+    headers.Authorization = `Bearer ${trimmedToken}`;
+    headers['x-api-key'] = trimmedToken;
+  }
+  return headers;
+}
+
+async function loadMembersFromSharedLibrary(config = readSharedLibraryConfig()) {
+  if (!config?.url) {
+    return null;
+  }
+  const response = await fetch(config.url, {
+    method: 'GET',
+    headers: buildSharedLibraryHeaders(config.token)
+  });
+  if (!response.ok) {
+    throw new Error(`Shared library load failed (${response.status}).`);
+  }
+  const data = await response.json();
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (Array.isArray(data?.members)) {
+    return data.members;
+  }
+  return null;
+}
+
+async function pushMembersToSharedLibrary(config = readSharedLibraryConfig(), { quiet = false } = {}) {
+  if (!config?.url) {
+    return false;
+  }
+  const payload = {
+    members: cloneSnapshotData(state.members),
+    savedAt: new Date().toISOString()
+  };
+  const response = await fetch(config.url, {
+    method: 'PUT',
+    headers: buildSharedLibraryHeaders(config.token),
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) {
+    throw new Error(`Shared library save failed (${response.status}).`);
+  }
+  lastSharedLibraryHash = memberHash(state.members);
+  if (!quiet) {
+    notify('Shared library updated.');
+  }
+  return true;
+}
+
+function scheduleSharedLibraryAutosave() {
+  const config = readSharedLibraryConfig();
+  if (!config?.url) {
+    return;
+  }
+  const nextHash = memberHash(state.members);
+  if (nextHash === lastSharedLibraryHash) {
+    return;
+  }
+  if (sharedLibrarySaveTimer) {
+    clearTimeout(sharedLibrarySaveTimer);
+  }
+  sharedLibrarySaveTimer = setTimeout(async () => {
+    try {
+      await pushMembersToSharedLibrary(config, { quiet: true });
+    } catch (error) {
+      console.error(error);
+      notify('Shared autosave failed. Use Push Library.');
+    }
+  }, SHARED_LIBRARY_AUTOSAVE_DELAY_MS);
+}
+
 function persistLibraryMembers() {
   try {
     const payload = {
@@ -2650,6 +2837,7 @@ function persistLibraryMembers() {
       savedAt: new Date().toISOString()
     };
     localStorage.setItem(TEAM_LIBRARY_KEY, JSON.stringify(payload));
+    scheduleSharedLibraryAutosave();
   } catch (error) {
     console.error(error);
   }
@@ -2843,16 +3031,23 @@ function persistState() {
   persistLibraryMembers();
 }
 
-function restoreState() {
+async function restoreState() {
   const stored = localStorage.getItem(STORAGE_KEY);
+  let sharedMembers = null;
+  try {
+    sharedMembers = await loadMembersFromSharedLibrary();
+  } catch (error) {
+    console.error(error);
+  }
   const persistedMembers = loadPersistedLibraryMembers();
   const savedChartMembers = latestMembersFromSavedCharts();
-  const fallbackMembers = persistedMembers || savedChartMembers;
+  const fallbackMembers = sharedMembers || persistedMembers || savedChartMembers;
   if (!stored) {
     seedInitialLayout();
     if (Array.isArray(fallbackMembers)) {
       state.members = cloneSnapshotData(fallbackMembers);
     }
+    lastSharedLibraryHash = memberHash(state.members);
     return;
   }
 
@@ -2873,13 +3068,17 @@ function restoreState() {
     state.autoConnect = parsed.autoConnect !== false;
     if (!Array.isArray(state.members)) {
       state.members = Array.isArray(fallbackMembers) ? cloneSnapshotData(fallbackMembers) : structuredClone(DEFAULT_MEMBERS);
+    } else if (Array.isArray(sharedMembers)) {
+      state.members = cloneSnapshotData(sharedMembers);
     }
+    lastSharedLibraryHash = memberHash(state.members);
   } catch (error) {
     console.error(error);
     seedInitialLayout();
     if (Array.isArray(fallbackMembers)) {
       state.members = cloneSnapshotData(fallbackMembers);
     }
+    lastSharedLibraryHash = memberHash(state.members);
   }
 }
 
@@ -2892,8 +3091,9 @@ function seedInitialLayout() {
   state.nodeSequence = 1;
 }
 
-function boot() {
-  restoreState();
+async function boot() {
+  syncSharedConfigInputs();
+  await restoreState();
   bindControlEvents();
   renderLibrary();
   renderRecentChartsList();

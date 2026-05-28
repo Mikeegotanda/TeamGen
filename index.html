@@ -37,6 +37,22 @@
           <button id="removeDepartmentBtn" class="btn" type="button">Remove Dept</button>
           <button id="clearLibraryBtn" class="btn" type="button">Clear All</button>
         </div>
+        <div class="field-stack compact">
+          <label for="sharedLibraryUrlInput">Shared Library URL</label>
+          <input id="sharedLibraryUrlInput" type="url" placeholder="https://your-store.example.com/team-library" />
+        </div>
+        <div class="field-stack compact">
+          <label for="sharedLibraryTokenInput">API Token (optional)</label>
+          <input id="sharedLibraryTokenInput" type="password" placeholder="Bearer/API key if required" />
+        </div>
+        <div class="grid-2">
+          <button id="saveSharedLibraryConfigBtn" class="btn" type="button">Save Sync Config</button>
+          <button id="loadSharedLibraryNowBtn" class="btn" type="button">Load Shared</button>
+        </div>
+        <div class="grid-2">
+          <button id="syncLibraryNowBtn" class="btn" type="button">Push Library</button>
+          <button id="clearSharedLibraryConfigBtn" class="btn" type="button">Clear Sync Config</button>
+        </div>
       </details>
 
       <div id="libraryList" class="library-list"></div>
@@ -114,21 +130,19 @@
         <div class="control-section layout-section">
           <div class="control-subsection">
             <p class="subsection-title">Structure</p>
-            <div class="grid-2">
-              <div class="field-stack compact">
-                <label for="hierarchyDirectionInput">Hierarchy Direction</label>
-                <select id="hierarchyDirectionInput">
-                  <option value="top-down">Top Down</option>
-                  <option value="left-right">Left Right</option>
-                  <option value="bottom-up">Bottom Up</option>
-                </select>
-              </div>
-              <div class="field-stack compact">
-                <label for="nodeSpacingInput">Node Spacing</label>
-                <input id="nodeSpacingInput" type="range" min="60" max="160" />
-                <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
-                <input id="symmetryDynamicInput" type="range" min="0" max="100" />
-              </div>
+            <div class="field-stack compact">
+              <label for="hierarchyDirectionInput">Hierarchy Direction</label>
+              <select id="hierarchyDirectionInput">
+                <option value="top-down">Top Down</option>
+                <option value="left-right">Left Right</option>
+                <option value="bottom-up">Bottom Up</option>
+              </select>
+            </div>
+            <div class="field-stack compact">
+              <label for="nodeSpacingInput">Node Spacing</label>
+              <input id="nodeSpacingInput" type="range" min="60" max="160" />
+              <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
+              <input id="symmetryDynamicInput" type="range" min="0" max="100" />
             </div>
             <div class="field-stack compact">
               <label for="rowCountInput">Row Count</label>
