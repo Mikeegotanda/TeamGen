@@ -103,6 +103,11 @@ body {
   gap: 10px;
 }
 
+.section-reset-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .layout-section {
   gap: 12px;
 }
@@ -345,6 +350,44 @@ body {
   margin-bottom: 8px;
 }
 
+.add-member-box .field-stack.compact {
+  gap: 4px;
+}
+
+.add-member-box .grid-2 {
+  gap: 8px;
+  align-items: stretch;
+}
+
+.add-member-box .grid-2 > .btn {
+  min-height: 34px;
+}
+
+.add-member-box .grid-2 > :only-child {
+  grid-column: 1 / -1;
+}
+
+.library-subgroup {
+  margin-top: 8px;
+  border: 1px solid rgba(131, 155, 184, 0.36);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.32);
+  padding: 6px 8px 8px;
+}
+
+.library-subgroup > summary {
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  color: #39526e;
+  margin-bottom: 6px;
+}
+
+.library-subgroup-danger {
+  border-color: rgba(167, 102, 117, 0.36);
+  background: rgba(255, 247, 249, 0.42);
+}
+
 .btn {
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: var(--ui-radius);
@@ -413,6 +456,12 @@ body {
 .hint {
   font-size: 12px;
   color: #4e6071;
+}
+
+.control-hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: #556a7f;
 }
 
 .recent-charts-panel {
@@ -496,21 +545,34 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.44);
   border-radius: var(--ui-radius);
   overflow: auto;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 18px;
+  display: block;
+  padding: 0;
+}
+
+.preview-host.panning {
+  cursor: grabbing;
 }
 
 .slide-preview {
-  width: 1280px;
-  height: 720px;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
   position: relative;
   background: var(--slide-bg);
   color: var(--slide-title);
-  transform-origin: top center;
+  transform-origin: top left;
   box-shadow: 0 24px 40px rgba(23, 33, 45, 0.26);
   overflow: hidden;
+}
+
+.slide-bg-image-layer {
+  position: absolute;
+  inset: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .slide-header {
@@ -520,6 +582,7 @@ body {
   align-items: center;
   padding: 0;
   position: relative;
+  z-index: 1;
 }
 
 .slide-title {
@@ -536,6 +599,7 @@ body {
 .slide-body {
   position: absolute;
   inset: var(--header-height, 128px) 0 18px;
+  z-index: 1;
 }
 
 .connector-layer {
@@ -568,6 +632,40 @@ body {
 .card-layer {
   position: absolute;
   inset: 0;
+}
+
+.drag-drop-guide {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.drag-drop-guide.is-hidden {
+  display: none;
+}
+
+.drag-drop-guide.guide-horizontal {
+  left: 0;
+  right: 0;
+  height: 64px;
+  transform: translateY(-50%);
+}
+
+.drag-drop-guide.guide-vertical {
+  top: 0;
+  bottom: 0;
+  width: 64px;
+  transform: translateX(-50%);
+}
+
+.drag-drop-guide.guide-existing {
+  background: rgba(46, 132, 255, 0.12);
+  outline: 2px solid rgba(46, 132, 255, 0.55);
+}
+
+.drag-drop-guide.guide-create {
+  background: rgba(82, 200, 118, 0.12);
+  outline: 2px dashed rgba(82, 200, 118, 0.85);
 }
 
 .canvas-card {
@@ -705,7 +803,10 @@ body {
 }
 
 .canvas-card.dragging {
-  opacity: 0.65;
+  opacity: 0.82;
+  z-index: 6;
+  box-shadow: 0 16px 30px rgba(13, 37, 68, 0.28);
+  transition: none;
 }
 
 .canvas-card.card-visual-elevated {

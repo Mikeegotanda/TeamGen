@@ -29,29 +29,9 @@
 
       <details class="add-member-box">
         <summary>Library Management</summary>
-        <div class="field-stack compact">
-          <label for="removeDepartmentInput">Remove Department</label>
-          <select id="removeDepartmentInput"></select>
-        </div>
         <div class="grid-2">
-          <button id="removeDepartmentBtn" class="btn" type="button">Remove Dept</button>
-          <button id="clearLibraryBtn" class="btn" type="button">Clear All</button>
-        </div>
-        <div class="field-stack compact">
-          <label for="sharedLibraryUrlInput">Shared Library URL</label>
-          <input id="sharedLibraryUrlInput" type="url" placeholder="https://your-store.example.com/team-library" />
-        </div>
-        <div class="field-stack compact">
-          <label for="sharedLibraryTokenInput">API Token (optional)</label>
-          <input id="sharedLibraryTokenInput" type="password" placeholder="Bearer/API key if required" />
-        </div>
-        <div class="grid-2">
-          <button id="saveSharedLibraryConfigBtn" class="btn" type="button">Save Sync Config</button>
-          <button id="loadSharedLibraryNowBtn" class="btn" type="button">Load Shared</button>
-        </div>
-        <div class="grid-2">
-          <button id="syncLibraryNowBtn" class="btn" type="button">Push Library</button>
-          <button id="clearSharedLibraryConfigBtn" class="btn" type="button">Clear Sync Config</button>
+          <button id="loadLibraryFromCodeBtn" class="btn" type="button">Load Library</button>
+          <button id="saveLibraryToCodeBtn" class="btn" type="button">Save Library</button>
         </div>
       </details>
 
@@ -107,12 +87,14 @@
 
       <div id="previewHost" class="preview-host">
         <div id="slidePreview" class="slide-preview">
+          <div id="slideBgImageLayer" class="slide-bg-image-layer"></div>
           <div id="slideHeader" class="slide-header">
           </div>
 
           <div id="slideBody" class="slide-body">
             <svg id="connectorLayer" class="connector-layer" viewBox="0 0 1280 720" preserveAspectRatio="none"></svg>
             <div id="cardLayer" class="card-layer"></div>
+            <div id="dragDropGuide" class="drag-drop-guide is-hidden" aria-hidden="true"></div>
           </div>
 
         </div>
@@ -128,6 +110,9 @@
       <details class="control-dropdown">
         <summary>Layout</summary>
         <div class="control-section layout-section">
+          <div class="section-reset-row">
+            <button id="resetLayoutBtn" class="btn" type="button">Reset Layout</button>
+          </div>
           <div class="control-subsection">
             <p class="subsection-title">Structure</p>
             <div class="field-stack compact">
@@ -135,80 +120,39 @@
               <select id="hierarchyDirectionInput">
                 <option value="top-down">Top Down</option>
                 <option value="left-right">Left Right</option>
+                <option value="right-left">Right Left</option>
                 <option value="bottom-up">Bottom Up</option>
               </select>
             </div>
             <div class="field-stack compact">
-              <label for="nodeSpacingInput">Node Spacing</label>
-              <input id="nodeSpacingInput" type="range" min="60" max="160" />
-              <label for="symmetryDynamicInput">Symmetrical ↔ Dynamic</label>
-              <input id="symmetryDynamicInput" type="range" min="0" max="100" />
-            </div>
-            <div class="field-stack compact">
-              <label for="rowCountInput">Row Count</label>
-              <select id="rowCountInput">
-                <option value="auto">Auto</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
+              <label for="visioOrgStyleInput">Branch Layout</label>
+              <select id="visioOrgStyleInput">
+                <option value="standard">Standard</option>
+                <option value="left-hanging">Left Hanging</option>
+                <option value="right-hanging">Right Hanging</option>
+                <option value="both-hanging">Both Hanging</option>
               </select>
             </div>
             <div class="field-stack compact">
-              <label for="layoutModeInput">Layout Mode</label>
-              <select id="layoutModeInput">
-                <option value="symmetrical">Symmetrical</option>
-                <option value="swimlane">Swimlane</option>
-              </select>
+              <label for="visioLevelSpacingInput">Level Spacing</label>
+              <input id="visioLevelSpacingInput" type="range" min="70" max="170" />
+            </div>
+            <div class="field-stack compact">
+              <label for="visioSiblingSpacingInput">Sibling Spacing</label>
+              <input id="visioSiblingSpacingInput" type="range" min="70" max="170" />
             </div>
           </div>
 
-          <div class="control-subsection">
-            <p class="subsection-title">Background</p>
-            <div class="grid-2">
-              <div class="field-stack compact">
-                <label for="bgColorInput">Background Color</label>
-                <input id="bgColorInput" type="color" />
-              </div>
-              <div class="field-stack compact">
-                <label for="bgGradientColor2Input">Gradient Color</label>
-                <input id="bgGradientColor2Input" type="color" />
-              </div>
-            </div>
-            <label class="check-wrap">
-              <input id="bgGradientEnabledInput" type="checkbox" />
-              Use Gradient Overlay
-            </label>
-            <div class="field-stack compact">
-              <label for="backgroundImageInput">Background Image</label>
-              <input id="backgroundImageInput" type="file" accept="image/*" />
-            </div>
-            <div class="field-stack compact">
-              <label for="bgImageOpacityInput">Background Image Opacity</label>
-              <input id="bgImageOpacityInput" type="range" min="0" max="100" />
-            </div>
-            <button id="removeBackgroundImageBtn" class="btn" type="button">Remove Background Image</button>
-          </div>
         </div>
       </details>
 
       <details class="control-dropdown">
         <summary>Cards</summary>
         <div class="control-section">
+          <div class="section-reset-row">
+            <button id="resetCardsBtn" class="btn" type="button">Reset Cards</button>
+          </div>
           <div class="grid-2">
-            <div class="field-stack compact">
-              <label for="cardShapeInput">Card Shape</label>
-              <select id="cardShapeInput">
-                <option value="square">Square</option>
-                <option value="rounded">Rounded</option>
-                <option value="soft">Soft Rounded</option>
-                <option value="pill">Pill</option>
-              </select>
-            </div>
             <div class="field-stack compact">
               <label for="cardLayoutInput">Card Layout</label>
               <select id="cardLayoutInput">
@@ -257,16 +201,41 @@
             </label>
           </div>
           <div class="field-stack compact">
-            <label for="cardRadiusInput">Card Radius</label>
-            <input id="cardRadiusInput" type="range" min="0" max="42" />
+            <label for="cardRadiusInput">Card Roundness</label>
+            <input id="cardRadiusInput" type="range" min="0" max="120" />
           </div>
           <div class="field-stack compact">
-            <label for="cardWidthScaleInput">Card Width</label>
-            <input id="cardWidthScaleInput" type="range" min="50" max="130" />
+            <label for="cardScaleInput">Card Scale</label>
+            <input id="cardScaleInput" type="range" min="50" max="130" />
+          </div>
+          <p class="section-title">Node Style</p>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="nodeFillColorInput">Fill Color</label>
+              <input id="nodeFillColorInput" type="color" />
+            </div>
+            <div class="field-stack compact">
+              <label for="nodeLineColorInput">Line Color</label>
+              <input id="nodeLineColorInput" type="color" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="nodeLineWeightInput">Line Weight</label>
+              <input id="nodeLineWeightInput" type="range" min="0" max="8" />
+            </div>
+            <div class="field-stack compact">
+              <label for="nodeLinePatternInput">Line Pattern</label>
+              <select id="nodeLinePatternInput">
+                <option value="solid">Solid</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+              </select>
+            </div>
           </div>
           <div class="field-stack compact">
-            <label for="cardHeightScaleInput">Card Height</label>
-            <input id="cardHeightScaleInput" type="range" min="45" max="130" />
+            <label for="nodeTransparencyInput">Node Transparency</label>
+            <input id="nodeTransparencyInput" type="range" min="0" max="80" />
           </div>
           <p class="section-title">Entrance Animation</p>
           <div class="grid-2">
@@ -335,6 +304,9 @@
       <details class="control-dropdown">
         <summary>Connectors</summary>
         <div class="control-section">
+          <div class="section-reset-row">
+            <button id="resetConnectorsBtn" class="btn" type="button">Reset Connectors</button>
+          </div>
           <div class="grid-2">
             <div class="field-stack compact">
               <label for="connectorStyleInput">Connector Style</label>
@@ -388,10 +360,6 @@
           </div>
           <div class="grid-2">
             <div class="field-stack compact">
-              <label for="connectorColorInput">Connector Color</label>
-              <input id="connectorColorInput" type="color" />
-            </div>
-            <div class="field-stack compact">
               <label for="connectorAnimationInput">Connector Animation</label>
               <select id="connectorAnimationInput">
                 <option value="none">None</option>
@@ -401,12 +369,16 @@
               </select>
             </div>
           </div>
+          <p id="connectorControlsHint" class="control-hint"></p>
         </div>
       </details>
 
       <details class="control-dropdown">
-        <summary>Colors</summary>
+        <summary>Colors & Graphics</summary>
         <div class="control-section">
+          <div class="section-reset-row">
+            <button id="resetColorsGraphicsBtn" class="btn" type="button">Reset Colors & Graphics</button>
+          </div>
           <div class="grid-2">
             <div class="field-stack compact">
               <label for="accentColorInput">Accent</label>
@@ -422,13 +394,53 @@
               <label for="cardBgInput">Card Background</label>
               <input id="cardBgInput" type="color" />
             </div>
+            <div class="field-stack compact">
+              <label for="bgColorInput">Background Color</label>
+              <input id="bgColorInput" type="color" />
+            </div>
           </div>
+          <div class="grid-2">
+            <div class="field-stack compact">
+              <label for="bgGradientColor2Input">Gradient Color</label>
+              <input id="bgGradientColor2Input" type="color" />
+            </div>
+            <div class="field-stack compact">
+              <label for="connectorColorInput">Connector Color</label>
+              <input id="connectorColorInput" type="color" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <label class="check-wrap">
+              <input id="bgGradientEnabledInput" type="checkbox" />
+              Use Gradient Overlay
+            </label>
+            <label class="check-wrap">
+              <input id="visioShowGridInput" type="checkbox" checked />
+              Show Grid
+            </label>
+          </div>
+          <div class="field-stack compact">
+            <label for="backgroundImageInput">Background Image</label>
+            <input id="backgroundImageInput" type="file" accept="image/*" />
+          </div>
+          <div class="field-stack compact">
+            <label for="bgImageOpacityInput">Background Image Opacity</label>
+            <input id="bgImageOpacityInput" type="range" min="0" max="100" />
+          </div>
+          <div class="field-stack compact">
+            <label for="visioGridSizeInput">Grid Size</label>
+            <input id="visioGridSizeInput" type="range" min="8" max="48" />
+          </div>
+          <button id="removeBackgroundImageBtn" class="btn" type="button">Remove Background Image</button>
         </div>
       </details>
 
       <details class="control-dropdown">
         <summary>Typography</summary>
         <div class="control-section">
+          <div class="section-reset-row">
+            <button id="resetTypographyBtn" class="btn" type="button">Reset Typography</button>
+          </div>
           <div class="grid-2">
             <div class="field-stack compact">
               <label for="headingSizeInput">Title Size</label>
@@ -520,6 +532,7 @@
   <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script src="team-library.seed.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

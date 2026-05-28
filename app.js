@@ -1,4 +1,7 @@
 const DEFAULT_MEMBERS = [];
+const EMBEDDED_LIBRARY_MEMBERS = Array.isArray(window.TEAMGEN_EMBEDDED_LIBRARY)
+  ? window.TEAMGEN_EMBEDDED_LIBRARY
+  : [];
 
 const PRESETS = {
   preconstruction: {
@@ -241,6 +244,7 @@ const TEAM_LIBRARY_KEY = 'teamgen-library-v1';
 const SHARED_LIBRARY_CONFIG_KEY = 'teamgen-shared-library-config-v1';
 const MAX_SAVED_CHARTS = 30;
 const SHARED_LIBRARY_AUTOSAVE_DELAY_MS = 900;
+const DEFAULT_LIBRARY_SOURCE_PATH = './team-library.seed.js';
 
 function normalizeSettings(settings) {
   const presetKey = settings?.type && PRESETS[settings.type] ? settings.type : 'preconstruction';
@@ -268,12 +272,40 @@ function normalizeSettings(settings) {
   normalized.nodeSpacingScale = Number.isFinite(Number(normalized.nodeSpacingScale))
     ? clamp(Number(normalized.nodeSpacingScale), 60, 160)
     : 100;
+  normalized.hierarchyDirection = ['top-down', 'left-right', 'right-left', 'bottom-up'].includes(normalized.hierarchyDirection)
+    ? normalized.hierarchyDirection
+    : 'top-down';
   normalized.layoutMode = normalized.layoutMode === 'swimlane' ? 'swimlane' : 'symmetrical';
+  normalized.nodeFillColor = normalized.nodeFillColor || normalized.cardBg || '#ffffff';
+  normalized.nodeLineColor = normalized.nodeLineColor || normalized.outlineColor || '#d8dde3';
+  normalized.nodeLineWeight = Number.isFinite(Number(normalized.nodeLineWeight))
+    ? clamp(Number(normalized.nodeLineWeight), 0, 8)
+    : clamp(Number(normalized.outlineWidth ?? 1), 0, 8);
+  normalized.nodeLinePattern = ['solid', 'dashed', 'dotted'].includes(normalized.nodeLinePattern)
+    ? normalized.nodeLinePattern
+    : 'solid';
+  normalized.nodeTransparency = Number.isFinite(Number(normalized.nodeTransparency))
+    ? clamp(Number(normalized.nodeTransparency), 0, 80)
+    : 0;
+  normalized.visioOrgStyle = ['standard', 'left-hanging', 'right-hanging', 'both-hanging'].includes(normalized.visioOrgStyle)
+    ? normalized.visioOrgStyle
+    : 'standard';
+  normalized.visioLevelSpacing = Number.isFinite(Number(normalized.visioLevelSpacing))
+    ? clamp(Number(normalized.visioLevelSpacing), 70, 170)
+    : 100;
+  normalized.visioSiblingSpacing = Number.isFinite(Number(normalized.visioSiblingSpacing))
+    ? clamp(Number(normalized.visioSiblingSpacing), 70, 170)
+    : 100;
+  normalized.visioGridSize = Number.isFinite(Number(normalized.visioGridSize))
+    ? clamp(Number(normalized.visioGridSize), 8, 48)
+    : 20;
+  normalized.visioShowGrid = typeof normalized.visioShowGrid === 'boolean' ? normalized.visioShowGrid : true;
+  normalized.visioSnapToGrid = false;
   return normalized;
 }
 
 const state = {
-  members: structuredClone(DEFAULT_MEMBERS),
+  members: structuredClone(EMBEDDED_LIBRARY_MEMBERS.length ? EMBEDDED_LIBRARY_MEMBERS : DEFAULT_MEMBERS),
   rows: [],
   nodes: {},
   manualLinks: [],
@@ -293,11 +325,12 @@ const dom = {
   removeDepartmentBtn: document.getElementById('removeDepartmentBtn'),
   clearLibraryBtn: document.getElementById('clearLibraryBtn'),
   sharedLibraryUrlInput: document.getElementById('sharedLibraryUrlInput'),
-  sharedLibraryTokenInput: document.getElementById('sharedLibraryTokenInput'),
   saveSharedLibraryConfigBtn: document.getElementById('saveSharedLibraryConfigBtn'),
   loadSharedLibraryNowBtn: document.getElementById('loadSharedLibraryNowBtn'),
   syncLibraryNowBtn: document.getElementById('syncLibraryNowBtn'),
   clearSharedLibraryConfigBtn: document.getElementById('clearSharedLibraryConfigBtn'),
+  loadLibraryFromCodeBtn: document.getElementById('loadLibraryFromCodeBtn'),
+  saveLibraryToCodeBtn: document.getElementById('saveLibraryToCodeBtn'),
   memberFormBox: document.getElementById('memberFormBox'),
   memberFormSummary: document.getElementById('memberFormSummary'),
   newMemberName: document.getElementById('newMemberName'),
@@ -307,13 +340,18 @@ const dom = {
   addMemberBtn: document.getElementById('addMemberBtn'),
   cancelEditMemberBtn: document.getElementById('cancelEditMemberBtn'),
   cardLayer: document.getElementById('cardLayer'),
+  dragDropGuide: document.getElementById('dragDropGuide'),
   connectorLayer: document.getElementById('connectorLayer'),
   slide: document.getElementById('slidePreview'),
+  slideBgImageLayer: document.getElementById('slideBgImageLayer'),
   slideHeader: document.getElementById('slideHeader'),
   slideTitle: document.getElementById('slideTitle'),
   hierarchyDirectionInput: document.getElementById('hierarchyDirectionInput'),
-  nodeSpacingInput: document.getElementById('nodeSpacingInput'),
-  rowCountInput: document.getElementById('rowCountInput'),
+  visioOrgStyleInput: document.getElementById('visioOrgStyleInput'),
+  visioLevelSpacingInput: document.getElementById('visioLevelSpacingInput'),
+  visioSiblingSpacingInput: document.getElementById('visioSiblingSpacingInput'),
+  visioShowGridInput: document.getElementById('visioShowGridInput'),
+  visioGridSizeInput: document.getElementById('visioGridSizeInput'),
   connectorStyleInput: document.getElementById('connectorStyleInput'),
   connectorTypeInput: document.getElementById('connectorTypeInput'),
   connectorWeightInput: document.getElementById('connectorWeightInput'),
@@ -321,8 +359,6 @@ const dom = {
   cardEntranceAnimationInput: document.getElementById('cardEntranceAnimationInput'),
   connectorAnimationInput: document.getElementById('connectorAnimationInput'),
   animationSpeedInput: document.getElementById('animationSpeedInput'),
-  layoutModeInput: document.getElementById('layoutModeInput'),
-  symmetryDynamicInput: document.getElementById('symmetryDynamicInput'),
   shadowIntensityInput: document.getElementById('shadowIntensityInput'),
   blurStrengthInput: document.getElementById('blurStrengthInput'),
   backgroundDepthInput: document.getElementById('backgroundDepthInput'),
@@ -332,6 +368,7 @@ const dom = {
   ambientGlowInput: document.getElementById('ambientGlowInput'),
   connectorVisualStyleInput: document.getElementById('connectorVisualStyleInput'),
   connectorDecorationInput: document.getElementById('connectorDecorationInput'),
+  connectorControlsHint: document.getElementById('connectorControlsHint'),
   cardVisualTypeInput: document.getElementById('cardVisualTypeInput'),
   avatarTreatmentInput: document.getElementById('avatarTreatmentInput'),
   bgColorInput: document.getElementById('bgColorInput'),
@@ -349,9 +386,12 @@ const dom = {
   cardShadowInput: document.getElementById('cardShadowInput'),
   cardOutlineInput: document.getElementById('cardOutlineInput'),
   cardRadiusInput: document.getElementById('cardRadiusInput'),
-  cardWidthScaleInput: document.getElementById('cardWidthScaleInput'),
-  cardHeightScaleInput: document.getElementById('cardHeightScaleInput'),
-  cardShapeInput: document.getElementById('cardShapeInput'),
+  cardScaleInput: document.getElementById('cardScaleInput'),
+  nodeFillColorInput: document.getElementById('nodeFillColorInput'),
+  nodeLineColorInput: document.getElementById('nodeLineColorInput'),
+  nodeLineWeightInput: document.getElementById('nodeLineWeightInput'),
+  nodeLinePatternInput: document.getElementById('nodeLinePatternInput'),
+  nodeTransparencyInput: document.getElementById('nodeTransparencyInput'),
   cardLayoutInput: document.getElementById('cardLayoutInput'),
   avatarStyleInput: document.getElementById('avatarStyleInput'),
   cardElevationInput: document.getElementById('cardElevationInput'),
@@ -359,6 +399,11 @@ const dom = {
   backgroundImageInput: document.getElementById('backgroundImageInput'),
   bgImageOpacityInput: document.getElementById('bgImageOpacityInput'),
   removeBackgroundImageBtn: document.getElementById('removeBackgroundImageBtn'),
+  resetLayoutBtn: document.getElementById('resetLayoutBtn'),
+  resetCardsBtn: document.getElementById('resetCardsBtn'),
+  resetConnectorsBtn: document.getElementById('resetConnectorsBtn'),
+  resetColorsGraphicsBtn: document.getElementById('resetColorsGraphicsBtn'),
+  resetTypographyBtn: document.getElementById('resetTypographyBtn'),
   autoConnectToggle: document.getElementById('autoConnectToggle'),
   clearCanvasBtn: document.getElementById('clearCanvasBtn'),
   saveChartBtn: document.getElementById('saveChartBtn'),
@@ -503,6 +548,48 @@ function getSpacingScale() {
   return clamp(raw / 100, 0.6, 1.6);
 }
 
+function getVisioLevelSpacingScale() {
+  const raw = Number(state.settings.visioLevelSpacing);
+  if (!Number.isFinite(raw)) {
+    return 1;
+  }
+  return clamp(raw / 100, 0.7, 1.7);
+}
+
+function getVisioSiblingSpacingScale() {
+  const raw = Number(state.settings.visioSiblingSpacing);
+  if (!Number.isFinite(raw)) {
+    return 1;
+  }
+  return clamp(raw / 100, 0.7, 1.7);
+}
+
+function getVisioGridSize() {
+  const raw = Number(state.settings.visioGridSize);
+  if (!Number.isFinite(raw)) {
+    return 20;
+  }
+  return clamp(Math.round(raw), 8, 48);
+}
+
+function snapPointToGrid(x, y) {
+  return { x, y };
+}
+
+function applyCanvasGridVisuals() {
+  if (state.settings.visioShowGrid !== true) {
+    dom.cardLayer.style.backgroundImage = 'none';
+    dom.cardLayer.style.backgroundSize = 'auto';
+    return;
+  }
+  const grid = getVisioGridSize();
+  dom.cardLayer.style.backgroundImage = `
+    linear-gradient(to right, rgba(91, 122, 156, 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(91, 122, 156, 0.18) 1px, transparent 1px)
+  `;
+  dom.cardLayer.style.backgroundSize = `${grid}px ${grid}px`;
+}
+
 function getBodyMetrics() {
   const cardSize = currentCardSize();
   const bodyWidth = dom.cardLayer.clientWidth || 1280;
@@ -535,7 +622,9 @@ function computeRowY(index, count) {
     return (metrics.top + metrics.bottom) / 2;
   }
   const span = metrics.bottom - metrics.top;
-  return metrics.top + (span / (count - 1)) * index;
+  const center = (metrics.top + metrics.bottom) / 2;
+  const t = index / Math.max(1, count - 1) - 0.5;
+  return center + t * span * getVisioLevelSpacingScale();
 }
 
 function computeRowYFromDirection(index, count) {
@@ -547,22 +636,16 @@ function computeRowYFromDirection(index, count) {
   return y;
 }
 
-function getTargetRowCount(actualRowCount) {
-  const configured = Number(state.settings.canvasRowCount);
-  if (!Number.isFinite(configured) || configured <= 0) {
-    return actualRowCount;
+function computeColumnXFromDirection(index, count) {
+  const metrics = getBodyMetrics();
+  if (count <= 1) {
+    return (metrics.left + metrics.right) / 2;
   }
-  return Math.max(actualRowCount, configured);
-}
-
-function mapRowToDisplayIndex(rowIndex, actualRowCount, targetRowCount) {
-  if (actualRowCount <= 1) {
-    return Math.floor((targetRowCount - 1) / 2);
+  const x = metrics.left + ((metrics.right - metrics.left) / (count - 1)) * index;
+  if (state.settings.hierarchyDirection === 'right-left') {
+    return metrics.left + metrics.right - x;
   }
-  if (targetRowCount <= actualRowCount) {
-    return rowIndex;
-  }
-  return Math.round((rowIndex * (targetRowCount - 1)) / (actualRowCount - 1));
+  return x;
 }
 
 function computeRowCenters(rowLength) {
@@ -571,8 +654,11 @@ function computeRowCenters(rowLength) {
     return [(metrics.left + metrics.right) / 2];
   }
   const span = metrics.right - metrics.left;
-  const step = span / Math.max(1, rowLength - 1);
-  return Array.from({ length: rowLength }, (_, index) => metrics.left + index * step);
+  const center = (metrics.left + metrics.right) / 2;
+  return Array.from({ length: rowLength }, (_, index) => {
+    const t = index / Math.max(1, rowLength - 1) - 0.5;
+    return center + t * span * getVisioSiblingSpacingScale();
+  });
 }
 
 function findRowForPrimaryAxis(primaryPoint) {
@@ -580,13 +666,8 @@ function findRowForPrimaryAxis(primaryPoint) {
     return { index: 0, create: true };
   }
   const rowCenters = state.rows.map((_, rowIndex) => {
-    if (state.settings.hierarchyDirection === 'left-right') {
-      const metrics = getBodyMetrics();
-      if (state.rows.length <= 1) {
-        return (metrics.left + metrics.right) / 2;
-      }
-      const span = metrics.right - metrics.left;
-      return metrics.left + (span / (state.rows.length - 1)) * rowIndex;
+    if (state.settings.hierarchyDirection === 'left-right' || state.settings.hierarchyDirection === 'right-left') {
+      return computeColumnXFromDirection(rowIndex, state.rows.length);
     }
     return computeRowYFromDirection(rowIndex, state.rows.length);
   });
@@ -622,7 +703,7 @@ function insertNodeIntoRow(row, nodeId, secondaryPoint) {
   }
 
   const centers =
-    state.settings.hierarchyDirection === 'left-right'
+    state.settings.hierarchyDirection === 'left-right' || state.settings.hierarchyDirection === 'right-left'
       ? (() => {
           const metrics = getBodyMetrics();
           if (row.length === 1) {
@@ -649,9 +730,11 @@ function insertNodeIntoRow(row, nodeId, secondaryPoint) {
 }
 
 function placeNodeAtPoint(nodeId, x, y) {
+  const snapped = snapPointToGrid(x, y);
   removeNodeFromRows(nodeId);
-  const primary = state.settings.hierarchyDirection === 'left-right' ? x : y;
-  const secondary = state.settings.hierarchyDirection === 'left-right' ? y : x;
+  const horizontalHierarchy = state.settings.hierarchyDirection === 'left-right' || state.settings.hierarchyDirection === 'right-left';
+  const primary = horizontalHierarchy ? snapped.x : snapped.y;
+  const secondary = horizontalHierarchy ? snapped.y : snapped.x;
   const target = findRowForPrimaryAxis(primary);
   if (target.create) {
     state.rows.splice(target.index, 0, []);
@@ -660,6 +743,69 @@ function placeNodeAtPoint(nodeId, x, y) {
   insertNodeIntoRow(state.rows[target.index], nodeId, secondary);
   compactRows();
   render();
+}
+
+function layerPointFromClient(clientX, clientY) {
+  const layerRect = dom.cardLayer.getBoundingClientRect();
+  return {
+    x: ((clientX - layerRect.left) / layerRect.width) * (dom.cardLayer.clientWidth || 1280),
+    y: ((clientY - layerRect.top) / layerRect.height) * (dom.cardLayer.clientHeight || 560)
+  };
+}
+
+function guidePositionForTarget(target, horizontalHierarchy) {
+  const metrics = getBodyMetrics();
+  if (state.rows.length === 0) {
+    return horizontalHierarchy ? (metrics.left + metrics.right) / 2 : (metrics.top + metrics.bottom) / 2;
+  }
+  const centers = state.rows.map((_, rowIndex) => (
+    horizontalHierarchy
+      ? computeColumnXFromDirection(rowIndex, state.rows.length)
+      : computeRowYFromDirection(rowIndex, state.rows.length)
+  ));
+  if (!target.create) {
+    return centers[Math.max(0, Math.min(centers.length - 1, target.index))];
+  }
+  if (target.index <= 0) {
+    const first = centers[0];
+    const next = centers[1] ?? (horizontalHierarchy ? metrics.right : metrics.bottom);
+    return first - Math.max(24, Math.abs(next - first) * 0.5);
+  }
+  if (target.index >= centers.length) {
+    const last = centers[centers.length - 1];
+    const prev = centers[centers.length - 2] ?? (horizontalHierarchy ? metrics.left : metrics.top);
+    return last + Math.max(24, Math.abs(last - prev) * 0.5);
+  }
+  return (centers[target.index - 1] + centers[target.index]) / 2;
+}
+
+function updateDragDropGuide(clientX, clientY) {
+  if (!dom.dragDropGuide) {
+    return;
+  }
+  const point = layerPointFromClient(clientX, clientY);
+  const horizontalHierarchy = state.settings.hierarchyDirection === 'left-right' || state.settings.hierarchyDirection === 'right-left';
+  const primary = horizontalHierarchy ? point.x : point.y;
+  const target = findRowForPrimaryAxis(primary);
+  const guidePosition = guidePositionForTarget(target, horizontalHierarchy);
+
+  dom.dragDropGuide.classList.remove('is-hidden', 'guide-horizontal', 'guide-vertical', 'guide-create', 'guide-existing');
+  dom.dragDropGuide.classList.add(horizontalHierarchy ? 'guide-vertical' : 'guide-horizontal');
+  dom.dragDropGuide.classList.add(target.create ? 'guide-create' : 'guide-existing');
+  if (horizontalHierarchy) {
+    dom.dragDropGuide.style.left = `${guidePosition}px`;
+    dom.dragDropGuide.style.top = '0px';
+  } else {
+    dom.dragDropGuide.style.top = `${guidePosition}px`;
+    dom.dragDropGuide.style.left = '0px';
+  }
+}
+
+function hideDragDropGuide() {
+  if (!dom.dragDropGuide) {
+    return;
+  }
+  dom.dragDropGuide.classList.add('is-hidden');
 }
 
 function removeNodeFromRows(nodeId) {
@@ -762,6 +908,9 @@ function fillDepartmentFilter() {
 }
 
 function fillDepartmentRemovalOptions() {
+  if (!dom.removeDepartmentInput) {
+    return;
+  }
   const departments = sortedDepartments().filter((name) => name !== 'All Departments');
   const previous = dom.removeDepartmentInput.value;
   dom.removeDepartmentInput.innerHTML = departments.length
@@ -1006,7 +1155,7 @@ function cardTemplate(member, xCenter) {
   const showDept = state.settings.infoVisibility === 'name-role-dept';
 
   const copyBlock = `
-    <div class="card-copy" style="text-align:${layout === 'avatar-top' ? 'center' : isRight && state.settings.cardShape === 'pill' ? 'right' : 'left'};">
+    <div class="card-copy" style="text-align:${layout === 'avatar-top' ? 'center' : 'left'};">
       <div class="card-name">${escapeHtml(member.name)}</div>
       ${showRole ? `<div class="card-role">${escapeHtml(member.title)}</div>` : ''}
       ${showDept ? `<div class="card-role" style="font-size:0.86em;opacity:0.78;">${escapeHtml(member.department || '')}</div>` : ''}
@@ -1032,15 +1181,6 @@ function cardTemplate(member, xCenter) {
     `;
   }
 
-  if (state.settings.cardShape === 'pill') {
-    return `
-      <div class="card-main" style="grid-template-columns:${showAvatar ? (isRight ? `1fr ${scaledW(compact ? 64 : 88, 30)}px` : `${scaledW(compact ? 64 : 88, 30)}px 1fr`) : '1fr'};padding:${scaledH(10, 5)}px ${scaledW(isRight ? 12 : 14, 6)}px ${scaledH(10, 5)}px ${scaledW(isRight ? 14 : 12, 6)}px;gap:${scaledW(compact ? 10 : 14, 5)}px;">
-        ${showAvatar ? `<img class="card-photo" src="${member.photo}" alt="${escapeHtml(member.name)}" style="width:${scaledT(compact ? 64 : 86, 30)}px;height:${scaledT(compact ? 64 : 86, 30)}px;${avatarExtraStyle};order:${isRight ? '2' : '0'};border:${Math.max(1, scaledT(3, 1))}px solid #f2dce0;" />` : ''}
-        ${copyBlock}
-      </div>
-    `;
-  }
-
   return `
     <div class="card-accent"></div>
     <div class="card-main" style="grid-template-columns:${showAvatar ? `${scaledW(compact ? 58 : 78, 28)}px 1fr` : '1fr'};gap:${scaledW(compact ? 10 : 14, 5)}px;padding:${scaledH(compact ? 10 : 12, 5)}px ${scaledW(compact ? 10 : 12, 5)}px;">
@@ -1055,16 +1195,11 @@ function rowLayouts() {
   const cardSize = currentCardSize();
   const metrics = getBodyMetrics();
   const actualRowCount = state.rows.length;
-  const targetRowCount = getTargetRowCount(actualRowCount);
+  const visioOrgStyle = state.settings.visioOrgStyle || 'standard';
 
   state.rows.forEach((row, rowIndex) => {
-    const displayRowIndex = mapRowToDisplayIndex(rowIndex, actualRowCount, targetRowCount);
-
-    if (state.settings.hierarchyDirection === 'left-right') {
-      const xCenter =
-        targetRowCount <= 1
-          ? (metrics.left + metrics.right) / 2
-          : metrics.left + ((metrics.right - metrics.left) / (targetRowCount - 1)) * displayRowIndex;
+    if (state.settings.hierarchyDirection === 'left-right' || state.settings.hierarchyDirection === 'right-left') {
+      const xCenter = computeColumnXFromDirection(rowIndex, actualRowCount);
       const yCenters =
         row.length <= 1
           ? [(metrics.top + metrics.bottom) / 2]
@@ -1084,13 +1219,29 @@ function rowLayouts() {
       return;
     }
 
-    const yCenter = computeRowYFromDirection(displayRowIndex, targetRowCount);
+    const yCenter = computeRowYFromDirection(rowIndex, actualRowCount);
     const xCenters = computeRowCenters(row.length);
+    let hangShift = 0;
+    if (
+      visioOrgStyle !== 'standard'
+      && rowIndex > 0
+      && state.settings.hierarchyDirection !== 'left-right'
+      && state.settings.hierarchyDirection !== 'right-left'
+    ) {
+      const shiftBase = Math.min((metrics.right - metrics.left) * 0.12, 140);
+      if (visioOrgStyle === 'left-hanging') {
+        hangShift = -shiftBase;
+      } else if (visioOrgStyle === 'right-hanging') {
+        hangShift = shiftBase;
+      } else if (visioOrgStyle === 'both-hanging') {
+        hangShift = rowIndex % 2 === 0 ? -shiftBase : shiftBase;
+      }
+    }
     row.forEach((nodeId, columnIndex) => {
       layouts[nodeId] = {
-        xCenter: xCenters[columnIndex],
+        xCenter: xCenters[columnIndex] + hangShift,
         yCenter,
-        x: xCenters[columnIndex] - cardSize.width / 2,
+        x: xCenters[columnIndex] + hangShift - cardSize.width / 2,
         y: yCenter - cardSize.height / 2,
         width: cardSize.width,
         height: cardSize.height,
@@ -1144,16 +1295,7 @@ function rowLayouts() {
 }
 
 function getCardRadiusFromShape() {
-  if (state.settings.cardShape === 'square') {
-    return 4;
-  }
-  if (state.settings.cardShape === 'pill') {
-    return 999;
-  }
-  if (state.settings.cardShape === 'soft') {
-    return 18;
-  }
-  return state.settings.cardRadius;
+  return clamp(Number(state.settings.cardRadius ?? 12), 0, 999);
 }
 
 function getCardShadowFromElevation() {
@@ -1307,8 +1449,13 @@ function cardAnimationDelay(layout, timings) {
 }
 
 function renderCards(layouts) {
+  const lineWeight = clamp(Number(state.settings.nodeLineWeight ?? state.settings.outlineWidth ?? 1), 0, 8);
+  const lineColor = state.settings.nodeLineColor || state.settings.outlineColor;
+  const linePattern = state.settings.nodeLinePattern || 'solid';
+  const lineStyle = linePattern === 'dashed' ? 'dashed' : linePattern === 'dotted' ? 'dotted' : 'solid';
+  const nodeOpacity = 1 - clamp(Number(state.settings.nodeTransparency ?? 0), 0, 80) / 100;
   const cardBorder = state.settings.showOutline
-    ? `${state.settings.outlineWidth}px solid ${state.settings.outlineColor}`
+    ? `${lineWeight}px ${lineStyle} ${lineColor}`
     : '0px solid transparent';
   const cardShadow = getCardShadowFromElevation();
   const cardRadius = getCardRadiusFromShape();
@@ -1337,9 +1484,9 @@ function renderCards(layouts) {
         typeof controls.outlineEnabled === 'boolean' ? controls.outlineEnabled : state.settings.showOutline;
       const outlineColor = controls.outlineColor || state.settings.outlineColor;
       const customOutline = outlineEnabled
-        ? `${state.settings.outlineWidth}px solid ${outlineColor}`
+        ? `${lineWeight}px ${lineStyle} ${outlineColor}`
         : '0px solid transparent';
-      const cardBorderValue = hasOutlineOverride ? customOutline : visual.border || cardBorder;
+      const cardBorderValue = hasOutlineOverride ? customOutline : cardBorder;
       const glowEnabled = controls.glowEnabled === true;
       const glowColor = controls.glowColor || state.settings.accentColor;
       const glowStrength = clamp(Number(controls.glowStrength ?? 38), 0, 100) / 100;
@@ -1355,9 +1502,10 @@ function renderCards(layouts) {
         `border:${cardBorderValue}`,
         `box-shadow:${cardShadowValue}`,
         `border-radius:${cardRadius}px`,
+        `opacity:${nodeOpacity}`,
         `--enter-duration:${timings.cardDuration}ms`,
         `--enter-delay:${animationDelay}ms`,
-        `background:${visual.background || state.settings.cardBg}`,
+        `background:${visual.background || state.settings.nodeFillColor || state.settings.cardBg}`,
         visual.backdrop ? `backdrop-filter:${visual.backdrop}` : '',
         state.settings.cardElevation === 'glass' && !visual.backdrop ? `backdrop-filter: blur(${blurStrength}px) saturate(125%)` : '',
         state.settings.cardElevation === 'glass' && !visual.background ? 'background: rgba(255,255,255,0.58)' : '',
@@ -1464,12 +1612,13 @@ function onCardClick(nodeId) {
 }
 
 function getConnectorAnchors(fromLayout, toLayout) {
-  if (state.settings.hierarchyDirection === 'left-right') {
-    const fromIsLeft = fromLayout.xCenter <= toLayout.xCenter;
+  if (state.settings.hierarchyDirection === 'left-right' || state.settings.hierarchyDirection === 'right-left') {
+    const rtl = state.settings.hierarchyDirection === 'right-left';
+    const fromIsLeading = rtl ? fromLayout.xCenter >= toLayout.xCenter : fromLayout.xCenter <= toLayout.xCenter;
     return {
-      fromX: fromIsLeft ? fromLayout.x + fromLayout.width : fromLayout.x,
+      fromX: fromIsLeading ? fromLayout.x + fromLayout.width : fromLayout.x,
       fromY: fromLayout.yCenter,
-      toX: fromIsLeft ? toLayout.x : toLayout.x + toLayout.width,
+      toX: fromIsLeading ? toLayout.x : toLayout.x + toLayout.width,
       toY: toLayout.yCenter
     };
   }
@@ -1501,7 +1650,7 @@ function pathBetweenCards(fromLayout, toLayout) {
   }
 
   if (style === 'curved') {
-    if (state.settings.hierarchyDirection === 'left-right') {
+    if (state.settings.hierarchyDirection === 'left-right' || state.settings.hierarchyDirection === 'right-left') {
       const midX = fromX + (toX - fromX) * 0.5;
       if ((state.settings.connectorVisualStyle || '') === 'hand-drawn') {
         const bend = (hashToUnit(`${fromX}-${toX}-${fromY}`) - 0.5) * 40;
@@ -1518,7 +1667,7 @@ function pathBetweenCards(fromLayout, toLayout) {
   }
 
   if (style === 'stepped') {
-    if (state.settings.hierarchyDirection === 'left-right') {
+    if (state.settings.hierarchyDirection === 'left-right' || state.settings.hierarchyDirection === 'right-left') {
       const stepX = fromX + (toX - fromX) * 0.35;
       return `M ${fromX} ${fromY} L ${stepX} ${fromY} L ${stepX} ${toY} L ${toX} ${toY}`;
     }
@@ -1526,7 +1675,7 @@ function pathBetweenCards(fromLayout, toLayout) {
     return `M ${fromX} ${fromY} L ${fromX} ${stepY} L ${toX} ${stepY} L ${toX} ${toY}`;
   }
 
-  if (state.settings.hierarchyDirection === 'left-right') {
+  if (state.settings.hierarchyDirection === 'left-right' || state.settings.hierarchyDirection === 'right-left') {
     const midX = fromX + (toX - fromX) / 2;
     return `M ${fromX} ${fromY} L ${midX} ${fromY} L ${midX} ${toY} L ${toX} ${toY}`;
   }
@@ -1592,19 +1741,27 @@ function connectorVisualProfile() {
 }
 
 function renderConnectors(layouts) {
+  const layerWidth = dom.cardLayer.clientWidth || 1280;
+  const layerHeight = dom.cardLayer.clientHeight || 560;
+  dom.connectorLayer.setAttribute('viewBox', `0 0 ${layerWidth} ${layerHeight}`);
+  dom.connectorLayer.setAttribute('preserveAspectRatio', 'none');
+
   const paths = [];
   const decorations = [];
   const weightMap = { thin: 2, medium: 4, bold: 7 };
   const strokeWidth = weightMap[state.settings.connectorWeight] || 4;
   const connectorColor = state.settings.connectorColor || '#8d949f';
   const timings = animationTimings();
-  const connectorClass = connectorAnimationClass();
   const visual = connectorVisualProfile();
   const decoration = state.settings.connectorDecoration || 'none';
   const baseDash =
     state.settings.connectorType === 'dashed'
       ? '9 7'
       : visual.dash || '';
+  let connectorClass = connectorAnimationClass();
+  if (connectorClass === 'anim-connector-draw' && baseDash) {
+    connectorClass = '';
+  }
   let pathIndex = 0;
 
   function pushPath(fromLayout, toLayout, stroke, width, opacity = 0.8) {
@@ -1614,7 +1771,7 @@ function renderConnectors(layouts) {
     const midY = (anchors.fromY + anchors.toY) / 2;
     const delay = pathIndex * Math.round(timings.stepDelay * 0.75);
     pathIndex += 1;
-    const dashValue = connectorClass === 'anim-connector-draw' ? '' : connectorClass === 'anim-connector-flow' ? '14 10' : baseDash;
+    const dashValue = connectorClass === 'anim-connector-flow' ? '14 10' : baseDash;
     const markerEnd = decoration === 'arrowheads' || visual.tapered ? 'url(#connector-arrow)' : '';
     const linecap = visual.linecap || 'round';
     const linejoin = visual.linejoin || 'round';
@@ -1681,6 +1838,27 @@ function renderConnectors(layouts) {
   }
 }
 
+function updateConnectorControlsHint() {
+  if (!dom.connectorControlsHint) {
+    return;
+  }
+  const nodeCount = Object.keys(state.nodes || {}).length;
+  let linkCount = state.manualLinks.filter((link) => state.nodes[link.from] && state.nodes[link.to]).length;
+  if (state.autoConnect) {
+    const rowLinks = state.rows.slice(1).reduce((sum, row) => sum + row.length, 0);
+    linkCount += rowLinks;
+  }
+  if (nodeCount < 2) {
+    dom.connectorControlsHint.textContent = 'Add at least two cards to preview connector styles.';
+    return;
+  }
+  if (linkCount === 0) {
+    dom.connectorControlsHint.textContent = 'No active links yet. Turn on Auto connectors or link cards manually.';
+    return;
+  }
+  dom.connectorControlsHint.textContent = `Previewing ${linkCount} connector${linkCount === 1 ? '' : 's'}.`;
+}
+
 function updateHeaderHeight() {
   const measured = dom.slideHeader?.offsetHeight || 0;
   const headerHeight = Math.max(8, measured + 2);
@@ -1711,23 +1889,21 @@ function applySlideBackgroundLayers() {
     repeats.push('no-repeat');
   }
 
-  if (state.settings.bgImage) {
-    const coverAlpha = alphaHexFromPercent(100 - bgImageOpacity);
-    images.push(`linear-gradient(${withAlpha(bg, coverAlpha)}, ${withAlpha(bg, coverAlpha)})`);
-    sizes.push('cover');
-    positions.push('center center');
-    repeats.push('no-repeat');
-    images.push(`url(${state.settings.bgImage})`);
-    sizes.push('cover');
-    positions.push('center center');
-    repeats.push('no-repeat');
-  }
-
   dom.slide.style.backgroundColor = bg;
   dom.slide.style.backgroundImage = images.length ? images.join(', ') : 'none';
   dom.slide.style.backgroundSize = sizes.length ? sizes.join(', ') : 'auto';
   dom.slide.style.backgroundPosition = positions.length ? positions.join(', ') : 'center';
   dom.slide.style.backgroundRepeat = repeats.length ? repeats.join(', ') : 'no-repeat';
+
+  if (dom.slideBgImageLayer) {
+    if (state.settings.bgImage) {
+      dom.slideBgImageLayer.style.backgroundImage = `url(${state.settings.bgImage})`;
+      dom.slideBgImageLayer.style.opacity = String(clamp(bgImageOpacity / 100, 0, 1));
+    } else {
+      dom.slideBgImageLayer.style.backgroundImage = 'none';
+      dom.slideBgImageLayer.style.opacity = '0';
+    }
+  }
 }
 
 function applyStyleToSlide() {
@@ -1760,9 +1936,11 @@ function applyStyleToSlide() {
 
 function render() {
   applyStyleToSlide();
+  applyCanvasGridVisuals();
   const layouts = rowLayouts();
   renderCards(layouts);
   renderConnectors(layouts);
+  updateConnectorControlsHint();
   syncSelectedCardControls();
   persistState();
 }
@@ -1826,8 +2004,11 @@ function fileToDataUrl(file) {
 
 function syncControls() {
   dom.hierarchyDirectionInput.value = state.settings.hierarchyDirection;
-  dom.nodeSpacingInput.value = String(state.settings.nodeSpacingScale ?? 100);
-  dom.rowCountInput.value = state.settings.canvasRowCount || 'auto';
+  dom.visioOrgStyleInput.value = state.settings.visioOrgStyle || 'standard';
+  dom.visioLevelSpacingInput.value = String(state.settings.visioLevelSpacing ?? 100);
+  dom.visioSiblingSpacingInput.value = String(state.settings.visioSiblingSpacing ?? 100);
+  dom.visioShowGridInput.checked = state.settings.visioShowGrid !== false;
+  dom.visioGridSizeInput.value = String(state.settings.visioGridSize ?? 20);
   dom.connectorStyleInput.value = state.settings.connectorStyle;
   dom.connectorTypeInput.value = state.settings.connectorType;
   dom.connectorWeightInput.value = state.settings.connectorWeight;
@@ -1835,8 +2016,6 @@ function syncControls() {
   dom.cardEntranceAnimationInput.value = state.settings.cardEntranceAnimation || 'none';
   dom.connectorAnimationInput.value = state.settings.connectorAnimation || 'none';
   dom.animationSpeedInput.value = state.settings.animationSpeed || 'normal';
-  dom.layoutModeInput.value = state.settings.layoutMode || 'symmetrical';
-  dom.symmetryDynamicInput.value = String(state.settings.symmetryDynamic ?? 18);
   if (dom.shadowIntensityInput) {
     dom.shadowIntensityInput.value = String(state.settings.shadowIntensity ?? 100);
   }
@@ -1881,15 +2060,32 @@ function syncControls() {
   dom.cardShadowInput.checked = state.settings.showShadow;
   dom.cardOutlineInput.checked = state.settings.showOutline;
   dom.cardRadiusInput.value = String(state.settings.cardRadius);
-  dom.cardWidthScaleInput.value = String(state.settings.cardWidthScale ?? state.settings.cardScale ?? 100);
-  dom.cardHeightScaleInput.value = String(state.settings.cardHeightScale ?? state.settings.cardScale ?? 100);
-  dom.cardShapeInput.value = state.settings.cardShape;
+  dom.cardScaleInput.value = String(Math.round((Number(state.settings.cardWidthScale ?? 100) + Number(state.settings.cardHeightScale ?? 100)) / 2));
+  dom.nodeFillColorInput.value = state.settings.nodeFillColor || state.settings.cardBg;
+  dom.nodeLineColorInput.value = state.settings.nodeLineColor || state.settings.outlineColor;
+  dom.nodeLineWeightInput.value = String(state.settings.nodeLineWeight ?? state.settings.outlineWidth ?? 1);
+  dom.nodeLinePatternInput.value = state.settings.nodeLinePattern || 'solid';
+  dom.nodeTransparencyInput.value = String(state.settings.nodeTransparency ?? 0);
   dom.cardLayoutInput.value = state.settings.cardLayout;
   dom.avatarStyleInput.value = state.settings.avatarStyle;
   dom.cardElevationInput.value = state.settings.cardElevation;
   dom.infoVisibilityInput.value = state.settings.infoVisibility;
   dom.autoConnectToggle.checked = state.autoConnect;
   syncSelectedCardControls();
+}
+
+function resetSettingsFields(fieldNames, message) {
+  const defaults = normalizeSettings(structuredClone(PRESETS[state.settings.type] || PRESETS.preconstruction));
+  fieldNames.forEach((name) => {
+    if (Object.prototype.hasOwnProperty.call(defaults, name)) {
+      state.settings[name] = defaults[name];
+    }
+  });
+  syncControls();
+  render();
+  if (message) {
+    notify(message);
+  }
 }
 
 function applyPreset(type, keepCurrentTitle = false) {
@@ -1915,24 +2111,23 @@ function bindControlEvents() {
     resetMemberForm();
     notify('Edit canceled.');
   });
-  dom.removeDepartmentBtn.addEventListener('click', removeDepartment);
-  dom.clearLibraryBtn.addEventListener('click', clearLibraryMembers);
-  dom.saveSharedLibraryConfigBtn.addEventListener('click', () => {
+  dom.removeDepartmentBtn?.addEventListener('click', removeDepartment);
+  dom.clearLibraryBtn?.addEventListener('click', clearLibraryMembers);
+  dom.saveSharedLibraryConfigBtn?.addEventListener('click', () => {
     const url = String(dom.sharedLibraryUrlInput?.value || '').trim();
-    const token = String(dom.sharedLibraryTokenInput?.value || '').trim();
     if (!url) {
       notify('Shared Library URL is required.');
       return;
     }
-    saveSharedLibraryConfig({ url, token });
+    saveSharedLibraryConfig({ url });
     notify('Shared sync config saved.');
   });
-  dom.clearSharedLibraryConfigBtn.addEventListener('click', () => {
+  dom.clearSharedLibraryConfigBtn?.addEventListener('click', () => {
     saveSharedLibraryConfig(null);
     syncSharedConfigInputs();
     notify('Shared sync config cleared.');
   });
-  dom.loadSharedLibraryNowBtn.addEventListener('click', async () => {
+  dom.loadSharedLibraryNowBtn?.addEventListener('click', async () => {
     const config = readSharedLibraryConfig();
     if (!config?.url) {
       notify('Set Shared Library URL first.');
@@ -1954,7 +2149,7 @@ function bindControlEvents() {
       notify('Unable to load shared library.');
     }
   });
-  dom.syncLibraryNowBtn.addEventListener('click', async () => {
+  dom.syncLibraryNowBtn?.addEventListener('click', async () => {
     const config = readSharedLibraryConfig();
     if (!config?.url) {
       notify('Set Shared Library URL first.');
@@ -1967,19 +2162,116 @@ function bindControlEvents() {
       notify('Unable to push shared library.');
     }
   });
+  dom.loadLibraryFromCodeBtn?.addEventListener('click', loadLibrary);
+  dom.saveLibraryToCodeBtn?.addEventListener('click', saveLibraryToAppCode);
+
+  dom.resetLayoutBtn?.addEventListener('click', () => {
+    resetSettingsFields(
+      [
+        'hierarchyDirection',
+        'visioOrgStyle',
+        'visioLevelSpacing',
+        'visioSiblingSpacing'
+      ],
+      'Layout reset to defaults.'
+    );
+  });
+
+  dom.resetCardsBtn?.addEventListener('click', () => {
+    resetSettingsFields(
+      [
+        'cardLayout',
+        'avatarStyle',
+        'cardElevation',
+        'infoVisibility',
+        'showShadow',
+        'showOutline',
+        'cardRadius',
+        'cardWidthScale',
+        'cardHeightScale',
+        'nodeFillColor',
+        'nodeLineColor',
+        'nodeLineWeight',
+        'nodeLinePattern',
+        'nodeTransparency',
+        'cardEntranceAnimation',
+        'animationSpeed',
+        'cardVisualType',
+        'avatarTreatment'
+      ],
+      'Cards reset to defaults.'
+    );
+  });
+
+  dom.resetConnectorsBtn?.addEventListener('click', () => {
+    resetSettingsFields(
+      [
+        'connectorStyle',
+        'connectorType',
+        'connectorWeight',
+        'connectorVisualStyle',
+        'connectorDecoration',
+        'connectorAnimation'
+      ],
+      'Connectors reset to defaults.'
+    );
+  });
+
+  dom.resetColorsGraphicsBtn?.addEventListener('click', () => {
+    resetSettingsFields(
+      [
+        'accentColor',
+        'headingColor',
+        'cardBg',
+        'bgColor',
+        'bgGradientColor2',
+        'connectorColor',
+        'bgGradientEnabled',
+        'bgImageOpacity',
+        'visioShowGrid',
+        'visioGridSize'
+      ],
+      'Colors & graphics reset to defaults.'
+    );
+    state.settings.bgImage = '';
+    dom.backgroundImageInput.value = '';
+    render();
+  });
+
+  dom.resetTypographyBtn?.addEventListener('click', () => {
+    resetSettingsFields(
+      ['headingSize', 'headingFont', 'headingBold', 'nameSize', 'roleSize', 'nameBold'],
+      'Typography reset to defaults.'
+    );
+  });
 
   dom.hierarchyDirectionInput.addEventListener('change', () => {
     state.settings.hierarchyDirection = dom.hierarchyDirectionInput.value;
     render();
   });
 
-  dom.nodeSpacingInput.addEventListener('input', () => {
-    state.settings.nodeSpacingScale = Number(dom.nodeSpacingInput.value);
+  dom.visioOrgStyleInput.addEventListener('change', () => {
+    state.settings.visioOrgStyle = dom.visioOrgStyleInput.value;
     render();
   });
 
-  dom.rowCountInput.addEventListener('change', () => {
-    state.settings.canvasRowCount = dom.rowCountInput.value;
+  dom.visioLevelSpacingInput.addEventListener('input', () => {
+    state.settings.visioLevelSpacing = Number(dom.visioLevelSpacingInput.value);
+    render();
+  });
+
+  dom.visioSiblingSpacingInput.addEventListener('input', () => {
+    state.settings.visioSiblingSpacing = Number(dom.visioSiblingSpacingInput.value);
+    render();
+  });
+
+  dom.visioShowGridInput.addEventListener('change', () => {
+    state.settings.visioShowGrid = dom.visioShowGridInput.checked;
+    render();
+  });
+
+  dom.visioGridSizeInput.addEventListener('input', () => {
+    state.settings.visioGridSize = Number(dom.visioGridSizeInput.value);
     render();
   });
 
@@ -2015,16 +2307,6 @@ function bindControlEvents() {
 
   dom.animationSpeedInput.addEventListener('change', () => {
     state.settings.animationSpeed = dom.animationSpeedInput.value;
-    render();
-  });
-
-  dom.layoutModeInput.addEventListener('change', () => {
-    state.settings.layoutMode = dom.layoutModeInput.value;
-    render();
-  });
-
-  dom.symmetryDynamicInput.addEventListener('input', () => {
-    state.settings.symmetryDynamic = Number(dom.symmetryDynamicInput.value);
     render();
   });
 
@@ -2181,18 +2463,35 @@ function bindControlEvents() {
     render();
   });
 
-  dom.cardWidthScaleInput.addEventListener('input', () => {
-    state.settings.cardWidthScale = Number(dom.cardWidthScaleInput.value);
+  dom.cardScaleInput.addEventListener('input', () => {
+    const value = Number(dom.cardScaleInput.value);
+    state.settings.cardWidthScale = value;
+    state.settings.cardHeightScale = value;
     render();
   });
 
-  dom.cardHeightScaleInput.addEventListener('input', () => {
-    state.settings.cardHeightScale = Number(dom.cardHeightScaleInput.value);
+  dom.nodeFillColorInput.addEventListener('input', () => {
+    state.settings.nodeFillColor = dom.nodeFillColorInput.value;
     render();
   });
 
-  dom.cardShapeInput.addEventListener('change', () => {
-    state.settings.cardShape = dom.cardShapeInput.value;
+  dom.nodeLineColorInput.addEventListener('input', () => {
+    state.settings.nodeLineColor = dom.nodeLineColorInput.value;
+    render();
+  });
+
+  dom.nodeLineWeightInput.addEventListener('input', () => {
+    state.settings.nodeLineWeight = Number(dom.nodeLineWeightInput.value);
+    render();
+  });
+
+  dom.nodeLinePatternInput.addEventListener('change', () => {
+    state.settings.nodeLinePattern = dom.nodeLinePatternInput.value;
+    render();
+  });
+
+  dom.nodeTransparencyInput.addEventListener('input', () => {
+    state.settings.nodeTransparency = Number(dom.nodeTransparencyInput.value);
     render();
   });
 
@@ -2360,6 +2659,34 @@ function bindControlEvents() {
     dom.connectorLayer.style.transform = 'translate3d(0, 0, 0)';
   });
 
+  dom.previewHost.addEventListener('mousedown', (event) => {
+    if (event.button !== 1) {
+      return;
+    }
+    event.preventDefault();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startScrollLeft = dom.previewHost.scrollLeft;
+    const startScrollTop = dom.previewHost.scrollTop;
+    dom.previewHost.classList.add('panning');
+
+    const onMove = (moveEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      dom.previewHost.scrollLeft = startScrollLeft - dx;
+      dom.previewHost.scrollTop = startScrollTop - dy;
+    };
+
+    const onUp = () => {
+      dom.previewHost.classList.remove('panning');
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  });
+
   window.addEventListener('resize', scalePreview);
 }
 
@@ -2372,6 +2699,18 @@ function startCardDrag(event, nodeId) {
   const startClientX = event.clientX;
   const startClientY = event.clientY;
   let moved = false;
+  let card = null;
+  let rafQueued = false;
+  let pendingDx = 0;
+  let pendingDy = 0;
+
+  const drawCardOffset = () => {
+    if (!card) {
+      return;
+    }
+    card.style.transform = `translate(${pendingDx}px, ${pendingDy}px)`;
+    rafQueued = false;
+  };
 
   const move = (moveEvent) => {
     const dx = moveEvent.clientX - startClientX;
@@ -2379,10 +2718,19 @@ function startCardDrag(event, nodeId) {
     if (!moved && Math.hypot(dx, dy) > 8) {
       moved = true;
       state.draggingNodeId = nodeId;
-      const card = dom.cardLayer.querySelector(`[data-node-id="${nodeId}"]`);
+      card = dom.cardLayer.querySelector(`[data-node-id="${nodeId}"]`);
       if (card) {
         card.classList.add('dragging');
       }
+    }
+    if (moved) {
+      pendingDx = dx;
+      pendingDy = dy;
+      if (!rafQueued) {
+        rafQueued = true;
+        requestAnimationFrame(drawCardOffset);
+      }
+      updateDragDropGuide(moveEvent.clientX, moveEvent.clientY);
     }
   };
 
@@ -2390,18 +2738,17 @@ function startCardDrag(event, nodeId) {
     window.removeEventListener('pointermove', move);
     window.removeEventListener('pointerup', up);
 
-    const card = dom.cardLayer.querySelector(`[data-node-id="${nodeId}"]`);
     if (card) {
       card.classList.remove('dragging');
+      card.style.transform = '';
     }
+    hideDragDropGuide();
 
     if (!moved) {
       return;
     }
 
-    const layerRect = dom.cardLayer.getBoundingClientRect();
-    const x = ((upEvent.clientX - layerRect.left) / layerRect.width) * (dom.cardLayer.clientWidth || 1280);
-    const y = ((upEvent.clientY - layerRect.top) / layerRect.height) * (dom.cardLayer.clientHeight || 560);
+    const { x, y } = layerPointFromClient(upEvent.clientX, upEvent.clientY);
     placeNodeAtPoint(nodeId, x, y);
     state.draggingNodeId = null;
     notify('Card moved.');
@@ -2692,10 +3039,8 @@ function generateFromPrompt() {
 }
 
 function scalePreview() {
-  const containerWidth = dom.previewHost.clientWidth - 34;
-  const scale = Math.max(0.42, Math.min(1, containerWidth / 1280));
-  dom.slide.style.transform = `scale(${scale})`;
-  dom.slide.style.marginBottom = `${(1 - scale) * 720}px`;
+  dom.slide.style.transform = 'none';
+  dom.slide.style.marginBottom = '0';
 }
 
 function applyParallaxFromPointer(event) {
@@ -2723,8 +3068,7 @@ function readSharedLibraryConfig() {
       return null;
     }
     return {
-      url,
-      token: String(parsed?.token || '')
+      url
     };
   } catch (error) {
     console.error(error);
@@ -2734,8 +3078,7 @@ function readSharedLibraryConfig() {
 
 function saveSharedLibraryConfig(config) {
   const payload = {
-    url: String(config?.url || '').trim(),
-    token: String(config?.token || '').trim()
+    url: String(config?.url || '').trim()
   };
   if (!payload.url) {
     localStorage.removeItem(SHARED_LIBRARY_CONFIG_KEY);
@@ -2749,19 +3092,10 @@ function syncSharedConfigInputs() {
   if (dom.sharedLibraryUrlInput) {
     dom.sharedLibraryUrlInput.value = config?.url || '';
   }
-  if (dom.sharedLibraryTokenInput) {
-    dom.sharedLibraryTokenInput.value = config?.token || '';
-  }
 }
 
-function buildSharedLibraryHeaders(token) {
-  const headers = { 'Content-Type': 'application/json' };
-  const trimmedToken = String(token || '').trim();
-  if (trimmedToken) {
-    headers.Authorization = `Bearer ${trimmedToken}`;
-    headers['x-api-key'] = trimmedToken;
-  }
-  return headers;
+function buildSharedLibraryHeaders() {
+  return { 'Content-Type': 'application/json' };
 }
 
 async function loadMembersFromSharedLibrary(config = readSharedLibraryConfig()) {
@@ -2770,7 +3104,7 @@ async function loadMembersFromSharedLibrary(config = readSharedLibraryConfig()) 
   }
   const response = await fetch(config.url, {
     method: 'GET',
-    headers: buildSharedLibraryHeaders(config.token)
+    headers: buildSharedLibraryHeaders()
   });
   if (!response.ok) {
     throw new Error(`Shared library load failed (${response.status}).`);
@@ -2795,7 +3129,7 @@ async function pushMembersToSharedLibrary(config = readSharedLibraryConfig(), { 
   };
   const response = await fetch(config.url, {
     method: 'PUT',
-    headers: buildSharedLibraryHeaders(config.token),
+    headers: buildSharedLibraryHeaders(),
     body: JSON.stringify(payload)
   });
   if (!response.ok) {
@@ -2828,6 +3162,158 @@ function scheduleSharedLibraryAutosave() {
       notify('Shared autosave failed. Use Push Library.');
     }
   }, SHARED_LIBRARY_AUTOSAVE_DELAY_MS);
+}
+
+function triggerDownload(fileName, content, mimeType = 'text/plain;charset=utf-8') {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function buildEmbeddedLibraryCode() {
+  const payload = JSON.stringify(cloneSnapshotData(state.members), null, 2);
+  return `window.TEAMGEN_EMBEDDED_LIBRARY = ${payload};\n`;
+}
+
+async function saveLibraryToAppCode() {
+  const content = buildEmbeddedLibraryCode();
+  const suggestedName = 'team-library.seed.js';
+
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName,
+        types: [
+          {
+            description: 'JavaScript file',
+            accept: { 'text/javascript': ['.js'] }
+          }
+        ]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(content);
+      await writable.close();
+      notify('Library code saved. Save it as TeamGen/team-library.seed.js for offline embedded data.');
+      return;
+    } catch (error) {
+      if (error && error.name === 'AbortError') {
+        notify('Save canceled.');
+        return;
+      }
+      console.error(error);
+    }
+  }
+
+  triggerDownload(suggestedName, content, 'text/javascript;charset=utf-8');
+  notify('Downloaded team-library.seed.js. Replace TeamGen/team-library.seed.js with it.');
+}
+
+function normalizeImportedMembers(members) {
+  return members
+    .filter((member) => member && typeof member === 'object')
+    .map((member, index) => ({
+      id: String(member.id || `m${index + 1}`),
+      name: String(member.name || '').trim() || `Member ${index + 1}`,
+      title: String(member.title || '').trim() || 'Team Member',
+      department: String(member.department || '').trim() || 'General',
+      photo: String(member.photo || '').trim() || createAvatar(String(member.name || `Member ${index + 1}`), index + 1)
+    }));
+}
+
+function parseMembersFromText(text) {
+  const trimmed = String(text || '').trim();
+  if (!trimmed) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    if (Array.isArray(parsed?.members)) {
+      return parsed.members;
+    }
+  } catch (error) {
+    // Not plain JSON; try JS assignment format next.
+  }
+
+  const match = trimmed.match(/TEAMGEN_EMBEDDED_LIBRARY\s*=\s*(\[.*\]);?/s);
+  if (!match) {
+    return null;
+  }
+  try {
+    return JSON.parse(match[1]);
+  } catch (error) {
+    return null;
+  }
+}
+
+async function loadLibraryFromRepoSource() {
+  try {
+    const response = await fetch(DEFAULT_LIBRARY_SOURCE_PATH, { cache: 'no-store' });
+    if (!response.ok) {
+      return false;
+    }
+    const text = await response.text();
+    const members = parseMembersFromText(text);
+    if (!Array.isArray(members)) {
+      return false;
+    }
+    state.members = normalizeImportedMembers(members);
+    renderLibrary();
+    render();
+    persistState();
+    notify(`Loaded library (${state.members.length} members).`);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function loadLibraryFromCodeFile() {
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = '.js,.json,application/json,text/javascript';
+  picker.style.display = 'none';
+  document.body.appendChild(picker);
+
+  picker.addEventListener('change', async () => {
+    const file = picker.files?.[0];
+    picker.remove();
+    if (!file) {
+      notify('Load canceled.');
+      return;
+    }
+    try {
+      const text = await file.text();
+      const members = parseMembersFromText(text);
+      if (!Array.isArray(members)) {
+        notify('Could not read members from this file.');
+        return;
+      }
+      state.members = normalizeImportedMembers(members);
+      renderLibrary();
+      render();
+      persistState();
+      notify(`Loaded library (${state.members.length} members).`);
+    } catch (error) {
+      console.error(error);
+      notify('Unable to load library file.');
+    }
+  });
+
+  picker.click();
+}
+
+async function loadLibrary() {
+  const loadedFromRepo = await loadLibraryFromRepoSource();
+  if (!loadedFromRepo) {
+    loadLibraryFromCodeFile();
+  }
 }
 
 function persistLibraryMembers() {
@@ -3041,7 +3527,8 @@ async function restoreState() {
   }
   const persistedMembers = loadPersistedLibraryMembers();
   const savedChartMembers = latestMembersFromSavedCharts();
-  const fallbackMembers = sharedMembers || persistedMembers || savedChartMembers;
+  const embeddedMembers = EMBEDDED_LIBRARY_MEMBERS.length ? EMBEDDED_LIBRARY_MEMBERS : null;
+  const fallbackMembers = sharedMembers || persistedMembers || savedChartMembers || embeddedMembers;
   if (!stored) {
     seedInitialLayout();
     if (Array.isArray(fallbackMembers)) {
@@ -3084,7 +3571,7 @@ async function restoreState() {
 
 function seedInitialLayout() {
   state.settings = structuredClone(PRESETS.preconstruction);
-  state.members = structuredClone(DEFAULT_MEMBERS);
+  state.members = structuredClone(EMBEDDED_LIBRARY_MEMBERS.length ? EMBEDDED_LIBRARY_MEMBERS : DEFAULT_MEMBERS);
   state.rows = [];
   state.nodes = {};
   state.manualLinks = [];

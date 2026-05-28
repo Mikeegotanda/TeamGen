@@ -1,0 +1,1 @@
+window.TEAMGEN_EMBEDDED_LIBRARY = [];
